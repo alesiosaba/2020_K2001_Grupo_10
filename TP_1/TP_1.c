@@ -53,7 +53,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 			//printf("%c",caracter);
    	    
 			// Si viene un '0'
-        	if (caracter == 48)
+        	if (caracter == '0')
 			{
 				//printf("Viene un '0'\n");
 				//printf("Estado parado: q%d\n",estado);
@@ -64,7 +64,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 	            //system("CLS");
 			}
         	// Si viene un [1-7] 
-	        else if(caracter > 48 && caracter < 56)
+	        else if(caracter > '0' && caracter < '8')
 	        {
 	            //printf("Viene un [1-7]\n");
 				//printf("Estado parado: q%d\n",estado);
@@ -75,7 +75,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 	            //system("CLS");
 	        }
 	        // Si viene un {8,9}
-	        else if(caracter > 55 && caracter < 58)
+	        else if(caracter == '8' || caracter == '9')
 	        {
 	            //printf("Viene un {8,9}\n");
 				//printf("Estado parado: q%d\n",estado);
@@ -86,7 +86,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 	            //system("CLS");
 	        }
 	        // Si viene un {xX}
-	        else if(caracter == 88 || caracter == 120)
+	        else if(caracter == 'x' || caracter == 'X')
 	        {
 	            //printf("Viene un {xX}\n");
 				//printf("Estado parado: q%d\n",estado);
@@ -97,7 +97,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 	            //system("CLS");
 	        }
 	        // Si viene [a-f A-F] 
-	        else if((caracter > 64 && caracter < 71) || (caracter > 96 && caracter < 103))
+	        else if(((caracter >= 'A' && caracter <= 'F') || (caracter >= 'a' && caracter < 'f'))) 
 	        {
 	            //printf("Viene un [a-f A-F]\n");
 				//printf("Estado parado: q%d\n",estado);

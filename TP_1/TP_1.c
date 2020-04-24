@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
+#include <conio.h>
 
 const int filas=7;
 const int columnas=6; 
@@ -19,21 +20,32 @@ int main()
 								  {5,5,6,6,6,6},
 								  {6,6,6,6,6,6}};
 	
+	char verTabla; 
+	do{
+		printf("Ver tabla de transiciones?\n1.Si\n0.No\n\nOpcion: ");
+		verTabla = getchar();
+		system("CLS");
+	}while(verTabla!='1' && verTabla!='0');
 	
-	printf("Ver tabla de transiciones?\n1.Si\n0.No\n\nOpcion: ");
-	int verTabla = scanf("%d", &verTabla);
-	
-	if(verTabla)
+	if(verTabla=='1')
 		MostrarTabla(tablaTransiciones);
 		
-    FILE * entrada = fopen("entrada.txt","rt");
-	FILE * salida = fopen("salida.txt","wt");
+    FILE * entrada;
+
+	if (entrada=fopen("entrada.txt","rt")){		// Validar apertura de archivo de entrada
+		FILE * salida = fopen("salida.txt","wt");
+
+		ProcesarArchivoEntrada(entrada,salida,tablaTransiciones);
+
+		printf("Archivo de entrada procesado exitosamente\n\n");
+		printf("Archivo de salida grabado exitosamente\n\n");	
+	}	
+	else
+		printf("No se ha podido abrir el Archivo de entrada\n\n");
 	
-	ProcesarArchivoEntrada(entrada,salida,tablaTransiciones);
 	
-	printf("Archivo de entrada procesado exitosamente\n");
-	printf("Archivo de salida grabado exitosamente\n");
-	
+	printf("Presione una tecla para salir\n");
+	getch();
     return 0;
 }
 
@@ -89,7 +101,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 
 void MostrarTabla(int tablaTransiciones[][columnas]){
 	int i,j;
-	printf("\nTabla de Transiciones: \n\n");
+	printf("Tabla de Transiciones: \n\n");
     for(i=0; i<filas ; i++)
     {
         printf("q%d  ",i);

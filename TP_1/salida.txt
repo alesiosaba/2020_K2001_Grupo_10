@@ -1,1 +1,1 @@
-Decimal,Decimal,error,error,error,Octal,Octal,Octal,Hexadecimal,error,Octal,error,error,error,error,Hexadecimal,Hexadecimal,Hexadecimal,error,error,Decimal,
+Decimal,Decimal,ERROR,ERROR,ERROR,Octal,Octal,Octal,Hexadecimal,ERROR,Octal,ERROR,ERROR,ERROR,ERROR,Hexadecimal,Hexadecimal,Hexadecimal,ERROR,ERROR,Decimal

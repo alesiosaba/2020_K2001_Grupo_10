@@ -80,6 +80,8 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 	        // Caracter leido no es admitido
 	        else
 	        	AsignarEstado(estadoAnterior,&estadoActual,tablaTransiciones,5);
+	        	
+	        fputc(caracter, salida);	
 			
 			fflush(stdin);
 			caracter = fgetc(entrada);
@@ -89,10 +91,7 @@ void ProcesarArchivoEntrada(FILE *entrada, FILE *salida, int tablaTransiciones[]
 		
 		fflush(stdin);
 		caracter = fgetc(entrada);	
-		
-		// Agregar coma despues de cada tipo de constante
-		if(caracter != EOF && caracter != ',' ) 
-			fputs(",",salida);
+	
 	}
 	
 	fclose(entrada); 
@@ -121,20 +120,20 @@ void EscribirTipoConstante(FILE *salida, int estadoActual){
 	switch (estadoActual){
 		// Palabra no reconocida
 		case 6:
-			fputs("ERROR",salida);
+			fputs(" \tPALABRA NO RECONOCIDA\n",salida);
 			break;
 		// Constante Decimal 
 		case 1:
-			fputs("Decimal",salida);
+			fputs(" \tConstante Decimal\n",salida);
 			break;
 		// Constante Octal
 		case 5:
 		case 2:
-			fputs("Octal",salida);
+			fputs(" \tConstante Octal\n",salida);
 			break;
 		// Constante Hexadecimal
 		case 4:
-			fputs("Hexadecimal",salida);
+			fputs(" \tConstante Hexadecimal\n",salida);
 			break;			
 	}
 }

@@ -1,1 +1,21 @@
-Decimal,Decimal,ERROR,ERROR,ERROR,Octal,Octal,Octal,Hexadecimal,ERROR,Octal,ERROR,ERROR,ERROR,ERROR,Hexadecimal,Hexadecimal,Hexadecimal,ERROR,ERROR,Decimal
+1 	Constante Decimal
+301 	Constante Decimal
+1x 	PALABRA NO RECONOCIDA
+5F 	PALABRA NO RECONOCIDA
+8$ 	PALABRA NO RECONOCIDA
+0 	Constante Octal
+00 	Constante Octal
+06 	Constante Octal
+0x4 	Constante Hexadecimal
+08 	PALABRA NO RECONOCIDA
+0045 	Constante Octal
+0049 	PALABRA NO RECONOCIDA
+012$ 	PALABRA NO RECONOCIDA
+012x 	PALABRA NO RECONOCIDA
+06F 	PALABRA NO RECONOCIDA
+0x60 	Constante Hexadecimal
+0xAF 	Constante Hexadecimal
+0xD5e 	Constante Hexadecimal
+0x5$ 	PALABRA NO RECONOCIDA
+x 	PALABRA NO RECONOCIDA
+12 	Constante Decimal

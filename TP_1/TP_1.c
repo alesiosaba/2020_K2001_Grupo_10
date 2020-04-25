@@ -120,20 +120,20 @@ void EscribirTipoConstante(FILE *salida, int estadoActual){
 	switch (estadoActual){
 		// Palabra no reconocida
 		case 6:
-			fputs(" \tPALABRA NO RECONOCIDA\n",salida);
+			fputs("\t--> PALABRA NO RECONOCIDA\n",salida);
 			break;
 		// Constante Decimal 
 		case 1:
-			fputs(" \tConstante Decimal\n",salida);
+			fputs("\t--> Constante Decimal\n",salida);
 			break;
 		// Constante Octal
 		case 5:
 		case 2:
-			fputs(" \tConstante Octal\n",salida);
+			fputs("\t--> Constante Octal\n",salida);
 			break;
 		// Constante Hexadecimal
 		case 4:
-			fputs(" \tConstante Hexadecimal\n",salida);
+			fputs("\t--> Constante Hexadecimal\n",salida);
 			break;			
 	}
 }

@@ -10,7 +10,7 @@ struct Estado_CimaPila
 
 int estadosPosibles = 4; 	// q0, q1, q2, q3 (rechazo)
 int cimaPilaPosibles = 2; 	// $=0, R=1
-int columnas = 5; 			// 0, [1-9], {+,-,*,/}, (, )
+int columnas = 6; 			// 0, [1-9], {+,-,*,/}, (, ), [caracteres no admitidos]
 
 int q0=0, q1=1, q2=2, q3=3;
 	
@@ -25,7 +25,7 @@ int main()
 	struct Estado_CimaPila TT[estadosPosibles][cimaPilaPosibles][columnas];
 	
 	generarTablaTransiciones(TT);
-	mostrarTablaTransiciones(TT);	
+	mostrarTablaTransiciones(TT);		
 }
 
 void generarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])
@@ -112,7 +112,31 @@ void mostrarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][colu
 	
 	for(i=0;i<columnas;i++)
 	{
-		printf("Columna: %d\n\n",i);
+		printf("Columna: %d  ",i);
+		
+		switch(i)
+		{
+			case 0:
+				puts("Caracter 0");
+				break;
+			case 1:
+				puts("Caracteres [1-9]");
+				break;
+			case 2:
+				puts("Caracteres {+,-,*,/}");
+				break;
+			case 3:
+				puts("Caracter (");
+				break;
+			case 4:
+				puts("Caracter )");
+				break;
+			case 5:
+				puts ("Caracteres no admitidos");
+				break;
+		}
+		
+		printf("\n");
 		for(j=0;j<estadosPosibles-1;j++)
 		{
 			for(k=0;k<cimaPilaPosibles;k++)

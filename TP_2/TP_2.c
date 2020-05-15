@@ -8,6 +8,15 @@ struct Estado_CimaPila
 	char cadenaPush[3];
 };
 
+struct Nodo
+{
+	char info;
+	struct Nodo* sig;
+};
+
+struct Nodo* push(struct Nodo*, char);
+struct Nodo* pop(struct Nodo*);
+
 int estadosPosibles = 4; 	// q0, q1, q2, q3 (rechazo)
 int cimaPilaPosibles = 2; 	// $=0, R=1
 int columnas = 6; 			// 0, [1-9], {+,-,*,/}, (, ), [caracteres no admitidos]
@@ -26,6 +35,11 @@ int main()
 	
 	generarTablaTransiciones(TT);
 	mostrarTablaTransiciones(TT);		
+	
+	// Creacion de pila y asignacion inicial
+	struct Nodo *pila = (struct Nodo*)malloc(sizeof(struct Nodo));
+	pila->info = '$';
+	pila->sig = NULL;
 }
 
 void generarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])
@@ -158,4 +172,20 @@ void mostrarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][colu
 	
 	system("PAUSE");
 	system("CLS");	
+}
+
+struct Nodo* push(struct Nodo *pila, char caracter)
+{
+	struct Nodo* nuevo=(struct Nodo*)malloc(sizeof(struct Nodo));
+	nuevo->info = caracter;
+	nuevo->sig = pila;
+	return nuevo;
+}
+
+struct Nodo* pop(struct Nodo *pila)
+{
+	struct Nodo* aux = pila;
+	pila = aux->sig;
+	free(aux);
+	return pila;
 }

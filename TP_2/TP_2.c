@@ -38,8 +38,75 @@ int main()
 	
 	// Creacion de pila y asignacion inicial
 	struct Nodo *pila = (struct Nodo*)malloc(sizeof(struct Nodo));
-	pila->info = '$';
-	pila->sig = NULL;
+	pila = push(pila, '$');
+	
+	int columnaAux;
+	int estadoAux = 0;
+	int cimaAux = pilaVacia; // Hay un $
+	
+	char cima;
+	
+	int i;
+	int posError = 0;
+	int tieneError = 0;
+
+	char c = getche();
+	while(c != 13)
+	{
+		i=1; // segundo caracter de lo que vas a pushear
+		
+		cima = pila->info;
+		if(cima == '$')
+			cimaAux = pilaVacia;
+		else
+			cimaAux = pilaNoVacia;
+		
+		pila = pop(pila);
+		
+		if(c == 0)
+			columnaAux = 0;
+		else if(c >= '1' && c <= '9')
+			columnaAux = 1;
+		else if(c == '+' || c == '-' || c == '/' || c == '*')
+			columnaAux = 2;
+		else if(c == '(')
+			columnaAux = 3;
+		else if(c == ')')
+			columnaAux = 4;
+		else
+			columnaAux = 5;
+		
+		while(i>=0)
+		{
+			if(TT[estadoAux][cimaAux][columnaAux].cadenaPush[i] == '$' || TT[estadoAux][cimaAux][columnaAux].cadenaPush[i] == 'R')
+				pila = push(pila,TT[estadoAux][cimaAux][columnaAux].cadenaPush[i]);
+			i--;
+		}
+		
+		estadoAux = TT[estadoAux][cimaAux][columnaAux].estadoSig;
+		
+		if(estadoAux == 3)
+			tieneError = 1;
+		
+		if(tieneError == 0)
+			posError++;
+		
+		c = getche();
+	}
+	
+	printf("\n");
+	
+	if(estadoAux == 3)
+	{
+		for(i=0;i<posError;i++)
+			printf("-");
+	
+		printf("^\n");
+	}
+	else
+		printf("La expresion aritmetica ingresada es sintacticamente correcta");
+	
+	system("PAUSE");
 }
 
 void generarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
+#include <conio.h>
 
 struct Estado_CimaPila
 {
@@ -29,84 +30,37 @@ int pilaNoVacia = 1; 	// R
 void generarTablaTransiciones(struct Estado_CimaPila [][cimaPilaPosibles][columnas]);
 void mostrarTablaTransiciones(struct Estado_CimaPila [][cimaPilaPosibles][columnas]);
 
+void analizarExpresion(struct Estado_CimaPila [][cimaPilaPosibles][columnas]);
+void evaluarEstadoFinal(int,int);
+
 int main()
 {
 	struct Estado_CimaPila TT[estadosPosibles][cimaPilaPosibles][columnas];
 	
+	char opcion;
+	
 	generarTablaTransiciones(TT);
-	mostrarTablaTransiciones(TT);		
 	
-	// Creacion de pila y asignacion inicial
-	struct Nodo *pila = (struct Nodo*)malloc(sizeof(struct Nodo));
-	pila = push(pila, '$');
+	do{
+		printf("Ver tabla de transiciones?\n1.Si\n0.No\n\nOpcion: ");
+		opcion = getchar();
+		system("CLS");
+	}while(opcion!='1' && opcion!='0');
 	
-	int columnaAux;
-	int estadoAux = 0;
-	int cimaAux = pilaVacia; // Hay un $
+	if(opcion == '1')
+		mostrarTablaTransiciones(TT);	
 	
-	char cima;
-	
-	int i;
-	int posError = 0;
-	int tieneError = 0;
-
-	char c = getche();
-	while(c != 13)
+	do
 	{
-		i=1; // segundo caracter de lo que vas a pushear
+		analizarExpresion(TT);
 		
-		cima = pila->info;
-		if(cima == '$')
-			cimaAux = pilaVacia;
-		else
-			cimaAux = pilaNoVacia;
+		printf("Ingresar otra expresion?\n1.Si\n0.No\n\nOpcion: ");
+		opcion = getch();
 		
-		pila = pop(pila);
-		
-		if(c == 0)
-			columnaAux = 0;
-		else if(c >= '1' && c <= '9')
-			columnaAux = 1;
-		else if(c == '+' || c == '-' || c == '/' || c == '*')
-			columnaAux = 2;
-		else if(c == '(')
-			columnaAux = 3;
-		else if(c == ')')
-			columnaAux = 4;
-		else
-			columnaAux = 5;
-		
-		while(i>=0)
-		{
-			if(TT[estadoAux][cimaAux][columnaAux].cadenaPush[i] == '$' || TT[estadoAux][cimaAux][columnaAux].cadenaPush[i] == 'R')
-				pila = push(pila,TT[estadoAux][cimaAux][columnaAux].cadenaPush[i]);
-			i--;
-		}
-		
-		estadoAux = TT[estadoAux][cimaAux][columnaAux].estadoSig;
-		
-		if(estadoAux == 3)
-			tieneError = 1;
-		
-		if(tieneError == 0)
-			posError++;
-		
-		c = getche();
-	}
+		system("CLS");
+	}while(opcion!='0');
 	
-	printf("\n");
 	
-	if(estadoAux == 3)
-	{
-		for(i=0;i<posError;i++)
-			printf("-");
-	
-		printf("^\n");
-	}
-	else
-		printf("La expresion aritmetica ingresada es sintacticamente correcta");
-	
-	system("PAUSE");
 }
 
 void generarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])
@@ -182,8 +136,6 @@ void generarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][colu
 	strcpy(TT[q2][pilaVacia][2].cadenaPush,"$");
 	
 	printf("La Tabla de Transiciones se ha generado correctamente!\n\n");
-	system("PAUSE");
-	system("CLS");
 }
 
 void mostrarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])
@@ -239,6 +191,98 @@ void mostrarTablaTransiciones(struct Estado_CimaPila TT[][cimaPilaPosibles][colu
 	
 	system("PAUSE");
 	system("CLS");	
+}
+
+void analizarExpresion(struct Estado_CimaPila TT[][cimaPilaPosibles][columnas])
+{
+	// Creacion de pila y asignacion inicial
+	struct Nodo *pila = (struct Nodo*)malloc(sizeof(struct Nodo));
+	pila = push(pila, '$');
+	
+	int columnaActual;
+	int estadoActual = 0;
+	int cimaPilaActual = pilaVacia; // Hay un $
+	
+	char cima;
+	
+	int i;
+	int posError = 0;
+	int tieneError = 0;
+	
+	printf("Ingrese la expresion a analizar:\n\n");
+
+	char c = getche();
+	while(c != 13)
+	{
+		i=1; // segundo caracter de lo que vas a pushear
+		
+		cima = pila->info;
+		if(cima == '$')
+			cimaPilaActual = pilaVacia;
+		else
+			cimaPilaActual = pilaNoVacia;
+		
+		pila = pop(pila);
+		
+		if(c == 0)
+			columnaActual = 0;
+		else if(c >= '1' && c <= '9')
+			columnaActual = 1;
+		else if(c == '+' || c == '-' || c == '/' || c == '*')
+			columnaActual = 2;
+		else if(c == '(')
+			columnaActual = 3;
+		else if(c == ')')
+			columnaActual = 4;
+		else
+			columnaActual = 5;
+		
+		while(i>=0)
+		{
+			if(TT[estadoActual][cimaPilaActual][columnaActual].cadenaPush[i] == '$' || TT[estadoActual][cimaPilaActual][columnaActual].cadenaPush[i] == 'R')
+				pila = push(pila,TT[estadoActual][cimaPilaActual][columnaActual].cadenaPush[i]);
+			i--;
+		}
+		
+		estadoActual = TT[estadoActual][cimaPilaActual][columnaActual].estadoSig;
+		
+		if(estadoActual == 3)
+			tieneError = 1;
+		
+		if(tieneError == 0)
+			posError++;
+		
+		c = getche();
+	}
+	
+	if(pila->info != '$')
+		estadoActual = 3; 
+	
+	free(pila);
+	
+	evaluarEstadoFinal(estadoActual, posError);
+}
+
+void evaluarEstadoFinal(int estadoFinal, int posError)
+{
+	int i;
+	
+	printf("\n"); // Esto es para que no borre la expresion ingresada con el getche();
+	
+	if(estadoFinal == 3) // Estado de rechazo
+	{
+		if(posError != 0)
+		{
+			for(i=0;i<posError;i++)
+				printf("-");
+		}
+		
+		printf("^ error\n\n");
+		
+		printf("La expresion aritmetica ingresada NO es sintacticamente correcta\n\n");
+	}
+	else
+		printf("\nLa expresion aritmetica ingresada es sintacticamente correcta\n\n");
 }
 
 struct Nodo* push(struct Nodo *pila, char caracter)

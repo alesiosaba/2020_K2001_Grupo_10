@@ -49,7 +49,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Caracter de Puntuación*/
 {CARACTER_DE_PUNTUACION}    {printf("Caracter de puntuacion: %s\n",yytext);}
     /*Comentario de multiples lineas*/
-\/\*.*\*\/   {printf("Comentario de multiples lineas: %s\n",yytext);}
+\/\*(\*+[^\*\/]|[^\*])*\*+\/   {printf("Comentario de multiples lineas: %s\n",yytext);}
     /*Comentario de una linea*/
 \/\/.*\n   {printf("Comentario de una linea: %s\n",yytext);}
     /*Directivas de precompilador*/
@@ -59,8 +59,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Cadena de caracteres no identificados
 .* {printf("Cadena de caracteres no identificados: %s\n",yytext);}*/
 
-%%
-
+%% 
 int main(){
     /* Acciones previas a la invocación den analizador léxico */
     yyin = fopen("archivo.c","r");

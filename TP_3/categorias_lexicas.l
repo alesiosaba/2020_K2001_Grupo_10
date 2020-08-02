@@ -3,10 +3,9 @@
 %{
 // librerias incluidas    
 #include <stdio.h>
+#include <stdlib.h> 
 #include "funciones_tp3.h"
-// variables globales
-int cont = 0;
-int acum = 0;
+// variables globales   
 %}
 
 DIGITO_DECIMAL [0-9] 
@@ -27,27 +26,27 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 
 %% 
     /*Constante Entera Decimal*/
-[1-9]{DIGITO_DECIMAL}*      {printf("Constante entera decimal: %s\n",yytext);}
+[1-9]{DIGITO_DECIMAL}*      {constantesDecimales(yytext);}
     /*Constante Entera Octal*/
-0{DIGITO_OCTAL}*            {printf("Constante entera octal: %s\n",yytext);}
+0{DIGITO_OCTAL}*            {constantesOctales(yytext);}
     /*Constante Entera Hexadecimal*/
-0[xX]{DIGITO_HEXADECIMAL}+  {printf("Constante entera hexadecimal: %s\n",yytext);}
+0[xX]{DIGITO_HEXADECIMAL}+  {constantesHexadecimales(yytext);}
     /*Constante Real*/
-[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {printf("Constante real: %s\n",yytext);}
+[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {constantesReales(yytext);}
     /*Constante Caracter*/
-'.'                         {printf("Constante caracter: %s\n",yytext);}
+'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {constantesCaracter(yytext);}
     /*Literal Cadena*/
-\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {printf("Literal cadena: %s\n",yytext);}    
+\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {literalesCadena(yytext);}    
     /*Palabra Reservada*/
-{TIPO_DE_DATO}             {printf("Palabra Reservada (tipo de dato): %s\n",yytext);}
-{ESTRUCTURA_DE_CONTROL}    {printf("Palabra Reservada (estructura de control): %s\n",yytext);}
-{OTRA_PALABRA_RESERVADA} {printf("Palabra Reservada (otra palabra reservada): %s\n",yytext);}
+{TIPO_DE_DATO}             {palabrasReservadas(yytext,"Tipo de dato");}
+{ESTRUCTURA_DE_CONTROL}    {palabrasReservadas(yytext,"Estructura de control");}
+{OTRA_PALABRA_RESERVADA}   {palabrasReservadas(yytext,"Tipo de dato");}
     /*Operador*/
-{OPERADOR} {printf("Operador: %s\n",yytext);}
+{OPERADOR} {}
     /*Identificador (Algun operador entra en identificadores)*/
-({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {printf("Identificador: %s\n",yytext);}
+({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {} 
     /*Caracter de Puntuación*/
-{CARACTER_DE_PUNTUACION}    {printf("Caracter de puntuacion: %s\n",yytext);}
+{CARACTER_DE_PUNTUACION}    {}
     /*Comentario de multiples lineas*/
 \/\*(\*+[^\*\/]|[^\*])*\*+\/   {printf("Comentario de multiples lineas: %s\n",yytext);}
     /*Comentario de una linea*/
@@ -63,11 +62,13 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 int main(){
     /* Acciones previas a la invocación den analizador léxico */
     yyin = fopen("archivo.c","r");
- 
+    
     /* Invocación del analizador léxico */
     yylex();
 
     /* Acciones posteriores a la ejecución del analizador léxico */
+    ejecutarReportes();
+
     /* Mandar data al archivo de reporte */
     return 0;
 }

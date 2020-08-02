@@ -60,6 +60,8 @@ void reporteConstantesDecimales(){
     }    
 }
 
+////////////////  CONSTANTES OCTALES  /////////////
+
 void insertarConstanteOctal(char* cadena){
     struct nodoConstante *nuevo;
     nuevo = (struct nodoConstante*)malloc(sizeof(struct nodoConstante));
@@ -185,6 +187,7 @@ void reporteConstantesReales(){
     }
 }
 
+//////////////////// CONSTANTES CARACTER ///////////////////
 
 void insertarConstanteCaracter(char* cadena){
     struct nodoConstante *nuevo;
@@ -322,42 +325,43 @@ void reportePalabrasReservadas(){
 }
 
 /////////////////////////////////   OPERADORES Y CARACTERES DE PUNTUACION    /////////////////////////////////
-
-/* struct nodoOpCarPuntc{
+struct nodoOpCarPuntc{
     char* cadena;
     int cantidad;
     struct nodoOpCarPuntc *sig; 
 };
 
-struct nodoOpCarPuntc *primerOpCarPuntc = NULL;
+struct nodoOpCarPuntc* primerOpCarPuntc = NULL;
 
 void insertarOperadorCaracterPuntc(char* cadena){
-
     if(primerOpCarPuntc == NULL){
-        struct nodoOpCarPuntc *nuevo = (struct nodoOpCarPuntc*)malloc(sizeof(struct nodoOpCarPuntc));
-        strcpy(nuevo->cadena,cadena);
-        nuevo->sig = NULL;
+        
+        struct nodoOpCarPuntc* nuevo;
+        nuevo = (struct nodoOpCarPuntc*)malloc(sizeof(struct nodoOpCarPuntc));
+        nuevo->cadena = strdup(cadena);
+        // strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
         nuevo->cantidad = 1;
-        primerOpCarPuntc = nuevo;
+        nuevo->sig = NULL;
+        primerOpCarPuntc = nuevo; 
     }
     else{
-        struct nodoOpCarPuntc* aux;
-        aux = primerOpCarPuntc;
-
-        while(aux->sig != NULL && (strcmp(aux->cadena,cadena) != 0)){  // Mientras los caracteres sean distintos y no sea el fin de la lista
+        struct nodoOpCarPuntc* aux = primerOpCarPuntc;
+        while((strcmp(cadena,aux->cadena) != 0) && aux->sig != NULL){ // si no existe el caracter y NO estoy parado en el ultimo de la lista
             aux = aux->sig;
         }
 
-        if(strcmp(aux->cadena,cadena) != 0){
-            struct nodoOpCarPuntc *nuevo = (struct nodoOpCarPuntc*)malloc(sizeof(struct nodoOpCarPuntc));
-            strcpy(nuevo->cadena,cadena);
-            nuevo->sig = NULL;
+        if(aux->sig == NULL){ // si estoy parado en el ultimo de la lista
+            struct nodoOpCarPuntc* nuevo;
+            nuevo = (struct nodoOpCarPuntc*)malloc(sizeof(struct nodoOpCarPuntc));
+            nuevo->cadena = strdup(cadena);
+            // strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
             nuevo->cantidad = 1;
+            nuevo->sig = NULL;
             aux->sig = nuevo;
         }
-        else{
-            aux->cantidad +=1;
-        }   
+        else{ // si ya existe el caracter
+            aux->cantidad = aux->cantidad +1;
+        }
     }
 }
 
@@ -366,81 +370,16 @@ void operadoresCaracteresPuntc(char* cadena){
 }
 
 void reporteOperadoresCaracteresPuntc(){
-    printf("\nReporte Operadores y Caracteres de Puntuacion\n\n");
-    if(primerOpCarPuntc == NULL)
-        printf("\tNo se encontraron operadores ni caracteres de puntuacion\n");
-    else{
-        struct nodoOpCarPuntc* aux;
-        aux = primerOpCarPuntc;
-        while(aux != NULL){
-            printf("Op/Caracter: %s\tCantidad: %d\n",aux->cadena,aux->cantidad);
-            aux = aux->sig;
-        }
+    struct nodoOpCarPuntc* aux = primerOpCarPuntc;
+    while(aux != NULL){
+        printf("Operador/Caracter: %s\tCantidad: %d\n",aux->cadena,aux->cantidad);
+        aux = aux->sig;
     }
-} */
+} 
 
 
-/////////////////////////////////   IDENTIFICADORES    /////////////////////////////////
 
-struct nodoID{
-    char* cadena;
-    int cantidad;
-    struct nodoID *sig; 
-};
-struct nodoID *primerID = NULL;
 
-struct nodoID* buscar(struct nodoID* primerID, char* cadena){
-    struct nodoID* p = primerID;
-    while(p && strcmp(p->cadena,cadena)!=0)
-        p=p->sig;
-    if(p!=NULL && strcmp(p->cadena,cadena)==0)
-        return p;
-    return NULL;
-}
-
-struct nodoID *insertarIdentificadorOrdenado(char* cadena){
-    struct nodoID *nuevo;
-    nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
-    nuevo->cadena = strdup(cadena);
-    if(primerID==NULL || strcmp(cadena,(primerID->cadena))<0){
-        nuevo->sig = primerID;
-        primerID = nuevo;
-    }
-    else{
-        struct nodoID *aux = primerID; // Primer posicion
-        while (aux->sig !=NULL && strcmp(cadena,(aux->sig->cadena))>0)
-            aux=aux->sig; // avanzo
-        nuevo->sig=aux->sig;
-        aux->sig=nuevo;
-    }
-    return nuevo;
-}
-
-void insertarSinRepetir(char* cadena)
-{
-    struct nodoID *p = buscar(primerID,cadena);
-    if(p==NULL)
-        p=insertarIdentificadorOrdenado(cadena);
-
-}
-
-void identificadores(char* cadena){
-    insertarSinRepetir(cadena);
-}
-
-void reporteIdentificadores(){
-     printf("\nReporte Identificadores\n\n");
-    if(primerID == NULL)
-        printf("\tNo se encontraron identificadores\n");
-    else{
-        struct nodoID* aux;
-        aux = primerID;
-        while(aux != NULL){
-            printf("Identificador: %s\t\n",aux->cadena);
-            aux = aux->sig;
-        }
-    }   
-}
 
 void ejecutarReportes(){
     reportePalabrasReservadas();
@@ -450,6 +389,6 @@ void ejecutarReportes(){
     reporteConstantesHexadecimales();
     reporteConstantesReales();
     reporteConstantesCaracter();
-    //reporteOperadoresCaracteresPuntc();
-    reporteIdentificadores();
+    reporteOperadoresCaracteresPuntc();
+    //reporteIdentificadores();
 }

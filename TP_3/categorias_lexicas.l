@@ -42,11 +42,11 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 {ESTRUCTURA_DE_CONTROL}    {palabrasReservadas(yytext,"Estructura de control");}
 {OTRA_PALABRA_RESERVADA}   {palabrasReservadas(yytext,"Tipo de dato");}
     /*Operador*/
-{OPERADOR} {}
+{OPERADOR} {operadoresCaracteresPuntc(yytext);}
     /*Identificador (Algun operador entra en identificadores)*/
 ({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {} 
     /*Caracter de Puntuación*/
-{CARACTER_DE_PUNTUACION}    {}
+{CARACTER_DE_PUNTUACION}    {operadoresCaracteresPuntc(yytext);}
     /*Comentario de multiples lineas*/
 \/\*(\*+[^\*\/]|[^\*])*\*+\/   {printf("Comentario de multiples lineas: %s\n",yytext);}
     /*Comentario de una linea*/

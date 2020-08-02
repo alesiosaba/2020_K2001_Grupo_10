@@ -377,9 +377,81 @@ void reporteOperadoresCaracteresPuntc(){
     }
 } 
 
+//////////////////////////  IDENTIFICADORES  ////////////////////////////////////
 
+struct nodoID{
+	char* cadena;
+	int cantidad;
+	struct nodoID* sig;		
+};
 
+struct nodoID* primerID = NULL;
 
+int buscarIdentificador(char* cadena){
+	struct nodoID* aux = primerID;
+	while(strcmp(cadena,aux->cadena)!=0 && aux->sig != NULL){
+		aux = aux->sig;
+	}
+	
+	if(strcmp(cadena,aux->cadena)==0){
+		aux->cantidad = aux->cantidad + 1;
+		return 1;
+	}
+	else if(aux->sig == NULL){
+		return 0;
+	}		
+}
+
+void insertarIdentificadorOrdenado(char* cadena){
+	if(primerID == NULL){ // si la lista esta vacia
+		struct nodoID* nuevo;
+		nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
+        nuevo->cadena = strdup(cadena);
+        // strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
+		primerID = nuevo;
+		strcpy(primerID->cadena,cadena);
+		primerID->cantidad = 1;
+		primerID->sig = NULL;
+	}
+	else{
+		if(strcmp(cadena,primerID->cadena)<0){ // si el ID a insertar es el nuevo primero
+			struct nodoID* nuevo;
+			nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
+        	nuevo->cadena = strdup(cadena);
+        	// strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
+			nuevo->sig = primerID;
+			nuevo->cantidad = 1;
+			primerID = nuevo;
+		}
+		else if(!buscarIdentificador(cadena)){ // si el ID ya estaba en la lista lo incremento de cantidad
+			// si el ID no estaba en la lista lo inserto ordenado
+			struct nodoID* aux = primerID;
+			while(aux->sig != NULL && strcmp(cadena,aux->sig->cadena)>0){ // busco la posicion donde insertar el ID
+				aux = aux->sig;
+			}
+			struct nodoID* nuevo;
+			nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
+        	nuevo->cadena = strdup(cadena);
+        	// strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
+			nuevo->cantidad = 1;
+			nuevo->sig = aux->sig;
+			aux->sig = nuevo;				
+		}	
+	}
+}
+
+void identificadores(char* cadena){
+    insertarIdentificadorOrdenado(cadena);
+}
+
+void reporteIdentificadores(){
+	struct nodoID* aux;
+	aux = primerID;
+	while(aux != NULL){
+		printf("ID: %s\tcant: %d\n",aux->cadena,aux->cantidad);
+		aux = aux->sig;
+	}
+}
 
 void ejecutarReportes(){
     reportePalabrasReservadas();
@@ -390,5 +462,5 @@ void ejecutarReportes(){
     reporteConstantesReales();
     reporteConstantesCaracter();
     reporteOperadoresCaracteresPuntc();
-    //reporteIdentificadores();
+    reporteIdentificadores();
 }

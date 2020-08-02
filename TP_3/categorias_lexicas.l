@@ -44,7 +44,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Operador*/
 {OPERADOR} {operadoresCaracteresPuntc(yytext);}
     /*Identificador (Algun operador entra en identificadores)*/
-({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {} 
+({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {identificadores(yytext);} 
     /*Caracter de Puntuación*/
 {CARACTER_DE_PUNTUACION}    {operadoresCaracteresPuntc(yytext);}
     /*Comentario de multiples lineas*/

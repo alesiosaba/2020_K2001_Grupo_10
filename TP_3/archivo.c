@@ -1,10 +1,7 @@
-//HOLA
+//Hola
 
 /*
 Prueba
-de
-comentario
-de 
-varias
-lineas
- */
+Multiples
+Lineas
+*/

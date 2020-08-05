@@ -1,4 +1,5 @@
 %option noyywrap
+%option yylineno
 
 %{
 // librerias incluidas    
@@ -54,9 +55,9 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Directivas de precompilador*/
 #.*\n      {printf("Directiva de precompilador: %s\n",yytext);}
     /*Caracter no identificado*/
-. {printf("Caracter no identificado: %s\n",yytext);}    
+. /*{caracNoReconocidos(yytext,yylineno,"Caracter no reconocido");}/*
     /*Cadena de caracteres no identificados
-.* {printf("Cadena de caracteres no identificados: %s\n",yytext);}*/
+.* {caracNoReconocidos(yytext,yylineno,"Cadena de caracteres no reconocidos");}*/
 
 %% 
 int main(){

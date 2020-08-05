@@ -48,9 +48,9 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Caracter de Puntuación*/
 {CARACTER_DE_PUNTUACION}    {operadoresCaracteresPuntc(yytext);}
     /*Comentario de multiples lineas*/
-\/\*(\*+[^\*\/]|[^\*])*\*+\/   {printf("Comentario de multiples lineas: %s\n",yytext);}
+\/\*(\*+[^\*\/]|[^\*])*\*+\/   {comentarios(yytext,"Comentario de multiples lineas");}
     /*Comentario de una linea*/
-\/\/.*\n   {printf("Comentario de una linea: %s\n",yytext);}
+\/\/.*\n   {comentarios(yytext,"Comentario de una linea");}
     /*Directivas de precompilador*/
 #.*\n      {printf("Directiva de precompilador: %s\n",yytext);}
     /*Caracter no identificado*/

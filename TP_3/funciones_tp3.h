@@ -283,6 +283,7 @@ struct nodoPalabraReservada{
     char* tipo;
     struct nodoPalabraReservada *sig; 
 };
+
 struct nodoPalabraReservada *primerPalabraReservada = NULL;
 
 void insertarPalabraReservada(char* cadena,char* tipo){
@@ -445,13 +446,68 @@ void identificadores(char* cadena){
 }
 
 void reporteIdentificadores(){
+    printf("\nReporte Identificadores\n\n");
 	struct nodoID* aux;
 	aux = primerID;
 	while(aux != NULL){
 		printf("ID: %s\tcant: %d\n",aux->cadena,aux->cantidad);
 		aux = aux->sig;
 	}
+    if (primerID == NULL){
+        printf("\tNo se encontraron identificadores\n");
+        }
 }
+
+//////////////////////////  COMENTARIOS  ////////////////////////////////////
+
+struct nodoComentarios{
+	char* cadena;
+	char* tipo;
+	struct nodoComentarios* sig;		
+};
+
+struct nodoComentarios *primerComentario = NULL;
+
+void insertarComentarios(char* cadena,char* tipo){
+    struct nodoComentarios *nuevo;
+    nuevo = (struct nodoComentarios*)malloc(sizeof(struct nodoComentarios));
+    nuevo->cadena = strdup(cadena);
+    nuevo->tipo = tipo;
+
+    if(primerComentario == NULL){
+        primerComentario = nuevo;
+        nuevo->sig = NULL;
+    }
+    else{
+        struct nodoComentarios* aux;
+        aux = primerComentario;
+
+        while(aux->sig != NULL){
+            aux = aux->sig;
+        }
+        aux->sig = nuevo;
+    }
+}
+
+void comentarios(char* cadena,char* tipo){
+    insertarComentarios(cadena,tipo);
+}
+
+
+void reporteComentarios(){
+    printf("\nReporte Comentarios\n\n");
+    if(primerComentario == NULL)
+        printf("\tNo se encontraron comentarios\n\n");
+    else{
+        struct nodoComentarios* aux;
+        aux = primerComentario;
+        while(aux != NULL){
+            printf("%s\t(%s)\n",aux->cadena,aux->tipo);
+            aux = aux->sig;
+        }
+    }
+}
+
 
 void ejecutarReportes(){
     reportePalabrasReservadas();
@@ -463,4 +519,5 @@ void ejecutarReportes(){
     reporteConstantesCaracter();
     reporteOperadoresCaracteresPuntc();
     reporteIdentificadores();
+    reporteComentarios();
 }

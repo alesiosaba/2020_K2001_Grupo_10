@@ -416,25 +416,8 @@ int buscarIdentificador(char* cadena){
 }
 
 int criterioOrdenamiento(char* cadena1,char* cadena2){
-	char minuscula1[100];
-	int l1 = strlen(cadena1);
 	
-	char minuscula2[100];
-	int l2 = strlen(cadena2);
-	
-	int i,j;
-	
-	for(i=0;i<l1;i++){
-		minuscula1[i] = tolower(cadena1[i]);
-		minuscula1[l1] = '\0';
-	}
-	
-	for(i=0;i<l2;i++){
-		minuscula2[i] = tolower(cadena2[i]);
-		minuscula2[l2] = '\0';
-	}
-	
-	int resultado = strcmp(minuscula1,minuscula2); 
+	int resultado = strcasecmp(cadena1,cadena2); 
 	
 	if(resultado < 0)		// Si minuscula1 tiene menor ascii devuelve < 0    	ej: a y z 
 		return 0;
@@ -461,7 +444,7 @@ void insertarIdentificadorOrdenado(char* cadena){
 		primerID->sig = NULL;
 	}
 	else{
-		if(!(criterioOrdenamiento(cadena,primerID->cadena))){ // si el ID a insertar es el nuevo primero
+		if(!(criterioOrdenamiento(cadena,primerID->cadena))){ // si el ID a insertar es el nuevo primero (o sea no tendria que avanzar con el criterio de ordenamiento)
 			struct nodoID* nuevo;
 			nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
         	nuevo->cadena = strdup(cadena);

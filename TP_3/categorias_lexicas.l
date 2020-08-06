@@ -5,8 +5,7 @@
 // librerias incluidas    
 #include <stdio.h>
 #include <stdlib.h> 
-#include "funciones_tp3.h"
-// variables globales   
+#include "funciones_tp3.h" 
 %}
 
 DIGITO_DECIMAL [0-9] 
@@ -52,8 +51,6 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 \/\*(\*+[^\*\/]|[^\*])*\*+\/   {comentarios(yytext,"Comentario de multiples lineas");}
     /*Comentario de una linea*/
 \/\/.*\n   {comentarios(yytext,"Comentario de una linea");}
-    /*Directivas de precompilador*/
-#.*\n      {printf("Directiva de precompilador: %s\n",yytext);}
     /*Caracter no identificado*/
 . /*{caracNoReconocidos(yytext,yylineno,"Caracter no reconocido");}/*
     /*Cadena de caracteres no identificados

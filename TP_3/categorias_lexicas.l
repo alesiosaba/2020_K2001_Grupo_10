@@ -43,19 +43,17 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 {OTRA_PALABRA_RESERVADA}   {palabrasReservadas(yytext,"Tipo de dato");}
     /*Operador*/
 {OPERADOR} {operadoresCaracteresPuntc(yytext);}
-    /*Identificador (Algun operador entra en identificadores)*/
+    /*Identificador*/
 ({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {identificadores(yytext);} 
     /*Caracter de Puntuación*/
 {CARACTER_DE_PUNTUACION}    {operadoresCaracteresPuntc(yytext);}
     /*Comentario de multiples lineas*/
 \/\*(\*+[^\*\/]|[^\*])*\*+\/   {comentarios(yytext,"Comentario de multiples lineas");}
-    /*Comentario de una linea*/
-\/\/.*\n   {comentarios(yytext,"Comentario de una linea");}
-    /*Caracter no identificado*/
-. /*{caracNoReconocidos(yytext,yylineno,"Caracter no reconocido");}/*
-    /*Cadena de caracteres no identificados
-.* {caracNoReconocidos(yytext,yylineno,"Cadena de caracteres no reconocidos");}*/
-
+    /*Comentario de una linea (sin \n o $ al final porque sino no detecta comentario en la ultima linea)*/
+\/\/.* {comentarios(yytext,"Comentario de una linea");}
+    /*Cadena de caracteres no reconocidos*/
+.+ {caracNoReconocidos(yytext,yylineno);}
+    
 %% 
 int main(){
     /* Acciones previas a la invocación den analizador léxico */
@@ -67,6 +65,5 @@ int main(){
     /* Acciones posteriores a la ejecución del analizador léxico */
     ejecutarReportes();
 
-    /* Mandar data al archivo de reporte */
     return 0;
 }

@@ -1,7 +1,5 @@
-//Hola
+int main(){
+    int variable = 5;
+    char c = 'p';
+}
 
-/*
-Prueba
-Multiples
-Lineas
-*/

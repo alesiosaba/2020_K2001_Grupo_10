@@ -184,7 +184,6 @@ void reporteConstantesReales(){
         while(aux != NULL)
         {
             valor = atof(aux->cadena);
-            
             parteEntera = (int) valor;
             parteDecimal = valor - parteEntera;
 
@@ -380,7 +379,10 @@ void operadoresCaracteresPuntc(char* cadena){
 }
 
 void reporteOperadoresCaracteresPuntc(){
+    printf("\nReporte Operadores/Caracteres de Puntuacion\n\n");
     struct nodoOpCarPuntc* aux = primerOpCarPuntc;
+    if(primerOpCarPuntc==NULL)
+        printf("\tNo se encontraron Operadores/Caracteres de Puntuacion\n");
     while(aux != NULL){
         printf("Operador/Caracter: %s\tCantidad: %d\n",aux->cadena,aux->cantidad);
         aux = aux->sig;
@@ -459,7 +461,7 @@ void reporteIdentificadores(){
 	struct nodoID* aux;
 	aux = primerID;
 	while(aux != NULL){
-		printf("ID: %s\tcant: %d\n",aux->cadena,aux->cantidad);
+		printf("Identificador: %s\tcantidad: %d\n",aux->cadena,aux->cantidad);
 		aux = aux->sig;
 	}
     if (primerID == NULL){
@@ -482,10 +484,10 @@ void insertarComentarios(char* cadena,char* tipo){
     nuevo = (struct nodoComentarios*)malloc(sizeof(struct nodoComentarios));
     nuevo->cadena = strdup(cadena);
     nuevo->tipo = tipo;
+    nuevo->sig = NULL;
 
     if(primerComentario == NULL){
         primerComentario = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoComentarios* aux;
@@ -518,26 +520,23 @@ void reporteComentarios(){
 
 //////////////////////////  CARACTERES NO RECONOCIDOS  ////////////////////////////////////
 
-/*
 struct nodoCarNoReconocidos{
 	char* cadena;
 	int linea;
-    char* tipo;
 	struct nodoCarNoReconocidos* sig;		
 };
 
 struct nodoCarNoReconocidos *primerCarNoReconocido = NULL;
 
-void insertarCarNoReconocidos(char* cadena,int linea, char* tipo){
+void insertarCarNoReconocidos(char* cadena,int linea){
     struct nodoCarNoReconocidos *nuevo;
     nuevo = (struct nodoCarNoReconocidos*)malloc(sizeof(struct nodoCarNoReconocidos));
     nuevo->cadena = strdup(cadena);
     nuevo->linea = linea;
-    nuevo->tipo = tipo;
+    nuevo->sig = NULL;
 
     if(primerCarNoReconocido == NULL){
         primerCarNoReconocido = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoCarNoReconocidos* aux;
@@ -550,24 +549,23 @@ void insertarCarNoReconocidos(char* cadena,int linea, char* tipo){
     }
 }
 
-void caracNoReconocidos(char* cadena,int linea,char* tipo){
-    insertarCarNoReconocidos(cadena,linea,tipo);
+void caracNoReconocidos(char* cadena,int linea){
+    insertarCarNoReconocidos(cadena,linea);
 }
 
 void reporteCaracNoReconocidos(){
-    printf("\nReporte Caracteres No Reconocidos\n\n");
-    if(primerComentario == NULL)
-        printf("\tNo se encontraron caracteres no reconocidos\n\n");
+    printf("\nReporte Cadenas de caracteres no reconocidos\n\n");
+    if(primerCarNoReconocido == NULL)
+        printf("\n\tNo se encontraron cadenas de caracteres no reconocidos\n\n");
     else{
         struct nodoCarNoReconocidos* aux;
         aux = primerCarNoReconocido;
         while(aux != NULL){
-            printf("%s\t%d\n%s\n",aux->cadena,aux->linea,aux->tipo);
+            printf("Cadena: %s\tlinea: %d\n",aux->cadena,aux->linea);
             aux = aux->sig;
         }
     }
 }
-*/
 
 //////////////////////////  REPORTES  ////////////////////////////////////
 
@@ -582,5 +580,5 @@ void ejecutarReportes(){
     reporteOperadoresCaracteresPuntc();
     reporteIdentificadores();
     reporteComentarios();
-    //reporteCaracNoReconocidos();
+    reporteCaracNoReconocidos();
 }

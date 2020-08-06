@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h> 
 #include <math.h>
+#include <ctype.h> 
 
 /////////////////////////////////   CONSTANTES   /////////////////////////////////
 
@@ -414,6 +415,40 @@ int buscarIdentificador(char* cadena){
 	}		
 }
 
+int criterioOrdenamiento(char* cadena1,char* cadena2){
+	char minuscula1[100];
+	int l1 = strlen(cadena1);
+	
+	char minuscula2[100];
+	int l2 = strlen(cadena2);
+	
+	int i,j;
+	
+	for(i=0;i<l1;i++){
+		minuscula1[i] = tolower(cadena1[i]);
+		minuscula1[l1] = '\0';
+	}
+	
+	for(i=0;i<l2;i++){
+		minuscula2[i] = tolower(cadena2[i]);
+		minuscula2[l2] = '\0';
+	}
+	
+	int resultado = strcmp(minuscula1,minuscula2); 
+	
+	if(resultado < 0)		// Si minuscula1 tiene menor ascii devuelve < 0    	ej: a y z 
+		return 0;
+	else if(resultado > 0)	// Si minuscula1 tiene mayor ascii devuelve > 0		ej: z y a
+		return 1;
+	else{ // Caso cuando en minusculas son iguales			ej: A y a
+		resultado = strcmp(cadena1,cadena2); // Comparo con las cadenas originales
+		if(resultado < 0)
+			return 0;   // Devuelve 0 cuando cadena1 es mayus antes de cadena2 	ej: A y a
+		else 
+			return 1;	// Devuelve 1 cuando cadena1 es mayus despues de cadena2 	ej: a y A
+	}
+}
+
 void insertarIdentificadorOrdenado(char* cadena){
 	if(primerID == NULL){ // si la lista esta vacia
 		struct nodoID* nuevo;
@@ -426,7 +461,7 @@ void insertarIdentificadorOrdenado(char* cadena){
 		primerID->sig = NULL;
 	}
 	else{
-		if(strcmp(cadena,primerID->cadena)<0){ // si el ID a insertar es el nuevo primero
+		if(!(criterioOrdenamiento(cadena,primerID->cadena))){ // si el ID a insertar es el nuevo primero
 			struct nodoID* nuevo;
 			nuevo = (struct nodoID*)malloc(sizeof(struct nodoID));
         	nuevo->cadena = strdup(cadena);
@@ -438,7 +473,7 @@ void insertarIdentificadorOrdenado(char* cadena){
 		else if(!buscarIdentificador(cadena)){ // si el ID ya estaba en la lista lo incremento de cantidad
 			// si el ID no estaba en la lista lo inserto ordenado
 			struct nodoID* aux = primerID;
-			while(aux->sig != NULL && strcmp(cadena,aux->sig->cadena)>0){ // busco la posicion donde insertar el ID
+			while(aux->sig != NULL && criterioOrdenamiento(cadena,aux->sig->cadena)){ // busco la posicion donde insertar el ID
 				aux = aux->sig;
 			}
 			struct nodoID* nuevo;
@@ -556,7 +591,7 @@ void caracNoReconocidos(char* cadena,int linea){
 void reporteCaracNoReconocidos(){
     printf("\nReporte Cadenas de caracteres no reconocidos\n\n");
     if(primerCarNoReconocido == NULL)
-        printf("\n\tNo se encontraron cadenas de caracteres no reconocidos\n\n");
+        printf("\tNo se encontraron cadenas de caracteres no reconocidos\n\n");
     else{
         struct nodoCarNoReconocidos* aux;
         aux = primerCarNoReconocido;

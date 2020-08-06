@@ -1,5 +1,5 @@
-int main(){
-    int variable = 5;
-    char c = 'p';
-}
-
+hoLA
+hOla
+HolA
+HOla
+HOLA

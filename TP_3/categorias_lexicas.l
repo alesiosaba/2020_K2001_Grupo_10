@@ -51,8 +51,8 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 \/\*(\*+[^\*\/]|[^\*])*\*+\/   {comentarios(yytext,"Comentario de multiples lineas");}
     /*Comentario de una linea (sin \n o $ al final porque sino no detecta comentario en la ultima linea)*/
 \/\/.* {comentarios(yytext,"Comentario de una linea");}
-    /*Cadena de caracteres no reconocidos*/
-.+ {caracNoReconocidos(yytext,yylineno);}
+    /*Cadena de caracteres no reconocidos
+.+ {caracNoReconocidos(yytext,yylineno);}*/
     
 %% 
 int main(){

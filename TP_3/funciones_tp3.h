@@ -26,10 +26,10 @@ void insertarConstanteDecimal(char* cadena){
     nuevo->cadena = strdup(cadena);
     // strdup hace malloc((strlen(cadena)+1)*sizeof(char)); y strcpy(nuevo->cadena,cadena);
     nuevo->valor = atoi(cadena);
+    nuevo->sig = NULL;
 
     if(primerDecimal == NULL){
         primerDecimal = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoConstante* aux;
@@ -71,10 +71,10 @@ void insertarConstanteOctal(char* cadena){
     nuevo = (struct nodoConstante*)malloc(sizeof(struct nodoConstante));
     nuevo->cadena = strdup(cadena);
     nuevo->valor = strtol(cadena,NULL,8);
+    nuevo->sig = NULL;
 
     if(primerOctal == NULL){
         primerOctal = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoConstante* aux;
@@ -112,10 +112,10 @@ void insertarConstanteHexadecimal(char* cadena){
     nuevo = (struct nodoConstante*)malloc(sizeof(struct nodoConstante));
     nuevo->cadena = strdup(cadena);
     nuevo->valor = strtol(cadena,NULL,16);
+    nuevo->sig = NULL;
 
     if(primerHexadecimal == NULL){
         primerHexadecimal = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoConstante* aux;
@@ -152,9 +152,10 @@ void insertarConstanteReal(char* cadena){
     struct nodoConstante *nuevo;
     nuevo = (struct nodoConstante*)malloc(sizeof(struct nodoConstante));
     nuevo->cadena = strdup(cadena);
+    nuevo->sig = NULL;
+
     if(primerReal == NULL){
         primerReal = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoConstante* aux;
@@ -200,10 +201,10 @@ void insertarConstanteCaracter(char* cadena){
     struct nodoConstante *nuevo;
     nuevo = (struct nodoConstante*)malloc(sizeof(struct nodoConstante));
     nuevo->cadena = strdup(cadena);
+    nuevo->sig = NULL;
 
     if(primerCaracter == NULL){
         primerCaracter = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoConstante* aux;
@@ -226,12 +227,10 @@ void reporteConstantesCaracter(){
         printf("\tNo se encontraron constantes caracter\n");
     else{
         struct nodoConstante* aux;
-        aux = primerCaracter;
-        int i=1; 
+        aux = primerCaracter; 
         while(aux != NULL){
-            printf("-%d \t %s\n",i,aux->cadena);
+            printf("%s\n",aux->cadena);
             aux = aux->sig;
-            i++;
         }
     }
 }
@@ -250,10 +249,10 @@ void insertarLiteralCadena(char* cadena){
     nuevo = (struct nodoLiteralCadena*)malloc(sizeof(struct nodoLiteralCadena));
     nuevo->cadena = strdup(cadena);
     nuevo->longitud = strlen(cadena)-2;
+    nuevo->sig = NULL;
 
     if(primerLiteralCadena == NULL){
         primerLiteralCadena = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoLiteralCadena* aux;
@@ -278,7 +277,7 @@ void reporteLiteralesCadena(){
         struct nodoLiteralCadena* aux; 
         aux = primerLiteralCadena; 
         while(aux != NULL){
-            printf("-%s\tLongitud: %d\n",aux->cadena,aux->longitud);
+            printf("%s\tLongitud: %d\n",aux->cadena,aux->longitud);
             aux = aux->sig;
         }
     }
@@ -299,10 +298,10 @@ void insertarPalabraReservada(char* cadena,char* tipo){
     nuevo = (struct nodoPalabraReservada*)malloc(sizeof(struct nodoPalabraReservada));
     nuevo->cadena = strdup(cadena);
     nuevo->tipo = tipo;
+    nuevo->sig = NULL;
 
     if(primerPalabraReservada == NULL){
         primerPalabraReservada = nuevo;
-        nuevo->sig = NULL;
     }
     else{
         struct nodoPalabraReservada* aux;
@@ -530,7 +529,7 @@ void reporteComentarios(){
         struct nodoComentarios* aux;
         aux = primerComentario;
         while(aux != NULL){
-            printf("%s\t%s\n",aux->cadena,aux->tipo);
+            printf("%s\n%s\n\n",aux->tipo,aux->cadena);
             aux = aux->sig;
         }
     }
@@ -567,8 +566,24 @@ void insertarCarNoReconocidos(char* cadena,int linea){
     }
 }
 
-void caracNoReconocidos(char* cadena,int linea){
-    insertarCarNoReconocidos(cadena,linea);
+char cadenaNoReconocidos[100]="";
+
+void caracNoReconocidos(char* caracterNoReconocido,int linea){
+    
+    // Cuando el caracter no reconocido NO es un espacio y NO es un salto de linea
+    if(strcmp(caracterNoReconocido," ")!=0 && strcmp(caracterNoReconocido,"\n")!=0){ 
+        strcat(cadenaNoReconocidos,caracterNoReconocido);
+    }
+    else{            
+        if(strcmp(cadenaNoReconocidos,"")!=0){ // Cuando la cadena de no reconocidos no está vacia
+            if(strcmp(caracterNoReconocido," ")==0) // Cuando el caracter no reconocido es un espacio
+                insertarCarNoReconocidos(cadenaNoReconocidos,linea);
+            else                                    // Cuando el caracter no reconocido es un salto de linea
+                insertarCarNoReconocidos(cadenaNoReconocidos,linea-1);
+            
+            strcpy(cadenaNoReconocidos,"");
+        }
+    }
 }
 
 void reporteCaracNoReconocidos(){

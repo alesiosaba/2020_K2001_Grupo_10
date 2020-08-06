@@ -1,5 +1,6 @@
-hoLA
-hOla
-HolA
-HOla
-HOLA
+#int main(){
+    $$ 
+    ## #$#$
+    $ $ $
+    #
+}

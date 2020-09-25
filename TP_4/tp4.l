@@ -25,33 +25,77 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 
 
 %% 
-    /*Constante Entera Decimal*/
-[1-9]{DIGITO_DECIMAL}*      {constantesDecimales(yytext);}
+    /*Constante Entera Decimal*/        
+[1-9]{DIGITO_DECIMAL}*      {yylval.ival = atoi(yytext); return ENTERO;}
     /*Constante Entera Octal*/
-0{DIGITO_OCTAL}*            {constantesOctales(yytext);}
+0{DIGITO_OCTAL}*            {yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
     /*Constante Entera Hexadecimal*/
-0[xX]{DIGITO_HEXADECIMAL}+  {constantesHexadecimales(yytext);}
+0[xX]{DIGITO_HEXADECIMAL}+  {yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
     /*Constante Real*/
-[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {constantesReales(yytext);}
+[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {yylval.dval = atof(yytext); return NUM;}
     /*Constante Caracter*/
-'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {constantesCaracter(yytext);}
+'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {yylval.strval = yytext; return CONST_CARACTER;}
     /*Literal Cadena*/
-\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {literalesCadena(yytext);}    
+\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = yytext; return LITERAL_CADENA;}    
     /*Palabra Reservada*/
-{TIPO_DE_DATO}             {palabrasReservadas(yytext,"Tipo de dato");}
-{ESTRUCTURA_DE_CONTROL}    {palabrasReservadas(yytext,"Estructura de control");}
-{OTRA_PALABRA_RESERVADA}   {palabrasReservadas(yytext,"Tipo de dato");}
+{TIPO_DE_DATO}             {yylval.strval = yytext; return TIPO_DE_DATO;}
+{ESTRUCTURA_DE_CONTROL}    {yylval.strval = yytext; return ESTRUCTURA_DE_CONTROL;}
+{OTRA_PALABRA_RESERVADA}   {yylval.strval = yytext; return OTRA_PALABRA_RESERVADA;}
+ 
     /*Operador*/
-{OPERADOR} {operadoresCaracteresPuntc(yytext);}
+"["         {return '[';}
+"]"         {return ']';}
+"."         {return '.';}
+"->"        {return "->";}
+"sizeof"    {return "sizeof";}
+"++"        {return "++";}
+"--"        {return "--";}
+"~"         {return '~';}
+"!"         {return '!';}
+"-"         {return '-';}
+"+"         {return '+';}
+"&"         {return '&';}
+"*"         {return '*';}
+"/"         {return '/';}
+"%"         {return '%';}
+"<<"        {return "<<";}
+">>"        {return ">>";}
+"<"         {return '<';}
+">"         {return '>';}
+"<="        {return "<=";}
+">="        {return ">=";}
+"="         {return '=';}
+"=="        {return "==";}
+"!="        {return "!=";}
+"+="        {return "+=";}
+"-="        {return "-=";}
+"*="        {return "*=";}
+"/="        {return "/=";}
+"%="        {return "%=";}
+"&="        {return "&=";}
+"^="        {return "^=";}
+"|="        {return "|=";}
+"<<="       {return "<<=";}
+">>="       {return ">>=";}
+"^"         {return '^';}
+"|"         {return '|';}
+"||"        {return "||";}
+"&&"        {return "&&";}
+"?:"        {return "?:";}
+
     /*Identificador*/
-({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {identificadores(yytext);} 
+({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {yylval.strval = yytext; return IDENTIFICADOR;} 
     /*Caracter de Puntuación*/
-{CARACTER_DE_PUNTUACION}    {operadoresCaracteresPuntc(yytext);}
-    /*Comentario de multiples lineas*/
-\/\*(\*+[^\*\/]|[^\*])*\*+\/   {comentarios(yytext,"Comentario de multiples lineas");}
-    /*Comentario de una linea (sin \n o $ al final porque sino no detecta comentario en la ultima linea)*/
-\/\/.* {comentarios(yytext,"Comentario de una linea");}
+";"     {return ';';}
+","     {return ',';}
+"("     {return '(';}
+")"     {return ')';}
+"{"     {return '{';}
+"}"     {return '}';}
+":"     {return ':';}
+"..."     {return "...";}
+
     /*Cadena de caracteres no reconocidos*/
-(.|"\n") {caracNoReconocidos(yytext,yylineno);}
+. {yylval.strval = yytext; return CARAC_NO_RECONOCIDO;}
     
 %% 

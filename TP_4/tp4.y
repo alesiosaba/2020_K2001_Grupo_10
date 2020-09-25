@@ -18,74 +18,43 @@ int yywrap(){
 
 %union
 {
-    int entero; 
-    float real;
+    int ival; 
+    double dval;
+    char* strval;
 }
 
+// axioma
 %start input
 
-%token <real> TKN_NUM
+// Constantes enteras (decimales,octales,hexadecimales)
+%token <ival> ENTERO              
+// Constantes reales
+%token <dval> NUM                 
+// Constantes Caracter 
+%token <strval> CONST_CARACTER    
+// Literales Cadena 
+%token <strval> LITERAL_CADENA    
+// Palabras Reservadas
+%token <strval> TIPO_DE_DATO 
+%token <strval> ESTRUCTURA_DE_CONTROL
+%token <strval> OTRA_PALABRA_RESERVADA
+// Identificadores
+%token <strval> IDENTIFICADOR     
+// Cadenas de NO reconocidos
+%token <strval> CARAC_NO_RECONOCIDO
 
-%type <real> input
-%type <real> Expresion
+// %type <real> input
 
-%left TKN_MAS TKN_MENOS
-%left TKN_MULT TKN_DIV
+// %left TKN_MAS TKN_MENOS
+// %left TKN_MULT TKN_DIV
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
 input:    /* vacio */
-        | input line
+        | "int" IDENTIFICADOR {printf("%s",$<strval>2);}
 ;
-
-line:     '\n'
-        | exp '\n'  { printf ("\t %d\n", $1); }
-;
-
-exp:      NUM             { $$ = $1;         }
-        | exp exp '+'     { $$ = $1 + $2;    }
-        | exp exp '-'     { $$ = $1 - $2;    }
-        | exp exp '*'     { $$ = $1 * $2;    }
-        | exp exp '/'     { $$ = $1 / $2;    }
-        | exp exp '^'     { $$ = pow ($1, $2); }
 
 %%
-
-// Define variable puntero que apunta a la tabla de símbolos (TS).
-
-symrec *sym_table;
-
-// Define una estructura para cargar en la TS las funciones aritméticas.
-
-struct init
-{
-  char const *fname;
-  double (*fnct) (double);
-};
-
-// Declaramos una vector de tipo init llamado arith_fncts para almacenar todas las funciones en la TS.
-
-struct init const arith_fncts[] =
-{
-  { "atan", atan },
-  { "cos",  cos  },
-  { "exp",  exp  },
-  { "ln",   log  },
-  { "sin",  sin  },
-  { "sqrt", sqrt },
-  { 0, 0 },
-};
-
-//Definimos la función init_table para cargar el vector de funciones en la TS.
-
-static void init_table(){
-  int i;
-  for (i = 0; arith_fncts[i].fname != 0; i++)
-    {
-      symrec *ptr = putsym (arith_fncts[i].fname, TYP_FNCT);
-      ptr->value.fnctptr = arith_fncts[i].fnct;
-    }  
-}
 
 /* Llamada por yyparse ante un error */
 int  yyerror(char *s){
@@ -94,13 +63,11 @@ int  yyerror(char *s){
 
 
 int main(){
-    yyin = fopen("archivo.c","r");
+  yyin = fopen("archivo.c","r");
 
-    init_table();
+  #ifdef BISON_DEBUG
+    yydebug = 1;
+  #endif
 
-    #ifdef BISON_DEBUG
-            yydebug = 1;
-    #endif
-
-    yyparse();
+  yyparse();
 }

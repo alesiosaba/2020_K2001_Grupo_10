@@ -5,6 +5,7 @@
 // librerias incluidas    
 #include <stdio.h>
 #include <stdlib.h> 
+#include <string.h>
 #include "tp4.tab.h"    // archivo generado por BISON
 %}
 
@@ -34,22 +35,22 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Constante Real*/
 [\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {yylval.dval = atof(yytext); return NUM;}
     /*Constante Caracter*/
-'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {yylval.strval = yytext; return CONST_CARACTER;}
+'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {yylval.strval = strdup(yytext); return CONST_CARACTER;}
     /*Literal Cadena*/
-\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = yytext; return LITERAL_CADENA;}    
+\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = strdup(yytext); return LITERAL_CADENA;}    
     /*Palabra Reservada*/
-{TIPO_DE_DATO}             {yylval.strval = yytext; return TIPO_DE_DATO;}
-{ESTRUCTURA_DE_CONTROL}    {yylval.strval = yytext; return ESTRUCTURA_DE_CONTROL;}
-{OTRA_PALABRA_RESERVADA}   {yylval.strval = yytext; return OTRA_PALABRA_RESERVADA;}
+{TIPO_DE_DATO}             {yylval.strval = strdup(yytext); return TIPO_DE_DATO;}
+{ESTRUCTURA_DE_CONTROL}    {yylval.strval = strdup(yytext); return ESTRUCTURA_DE_CONTROL;}
+{OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}
  
     /*Operador*/
 "["         {return '[';}
 "]"         {return ']';}
 "."         {return '.';}
-"->"        {return "->";}
-"sizeof"    {return "sizeof";}
-"++"        {return "++";}
-"--"        {return "--";}
+"->"        {return OP_ACCESO_ATRIBUTO;}
+"sizeof"    {return OP_SIZEOF;}
+"++"        {return OP_INC;}
+"--"        {return OP_DEC;}
 "~"         {return '~';}
 "!"         {return '!';}
 "-"         {return '-';}
@@ -58,33 +59,33 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "*"         {return '*';}
 "/"         {return '/';}
 "%"         {return '%';}
-"<<"        {return "<<";}
-">>"        {return ">>";}
+"<<"        {return OP_DESPLAZAMIENTO_IZQ;}      
+">>"        {return OP_DESPLAZAMIENTO_DER;}      
 "<"         {return '<';}
 ">"         {return '>';}
-"<="        {return "<=";}
-">="        {return ">=";}
+"<="        {return OP_MENOR_IGUAL;}
+">="        {return OP_MAYOR_IGUAL;}
 "="         {return '=';}
-"=="        {return "==";}
-"!="        {return "!=";}
-"+="        {return "+=";}
-"-="        {return "-=";}
-"*="        {return "*=";}
-"/="        {return "/=";}
-"%="        {return "%=";}
-"&="        {return "&=";}
-"^="        {return "^=";}
-"|="        {return "|=";}
-"<<="       {return "<<=";}
-">>="       {return ">>=";}
+"=="        {return OP_IGUALDAD;}
+"!="        {return OP_DESIGUALDAD;}
+"+="        {return OP_ASIG_SUMA;}
+"-="        {return OP_ASIG_RESTA;}
+"*="        {return OP_ASIG_MULTIPLICACION;}
+"/="        {return OP_ASIG_DIVISION;}
+"%="        {return OP_ASIG_RESTO;}
+"&="        {return OP_ASIG_AND_BIT;}
+"^="        {return OP_ASIG_POTENCIA;}
+"|="        {return OP_ASIG_OR_BIT;}
+"<<="       {return OP_ASIG_DESPLAZAMIENTO_IZQ;}                 
+">>="       {return OP_ASIG_DESPLAZAMIENTO_DER;}                 
 "^"         {return '^';}
 "|"         {return '|';}
-"||"        {return "||";}
-"&&"        {return "&&";}
-"?:"        {return "?:";}
+"||"        {return OP_OR;}
+"&&"        {return OP_AND;}
+"?:"        {return OP_CONDICIONAL;}
 
     /*Identificador*/
-({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {yylval.strval = yytext; return IDENTIFICADOR;} 
+({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {yylval.strval = strdup(yytext); return IDENTIFICADOR;} 
     /*Caracter de Puntuación*/
 ";"     {return ';';}
 ","     {return ',';}
@@ -93,9 +94,12 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "{"     {return '{';}
 "}"     {return '}';}
 ":"     {return ':';}
-"..."     {return "...";}
+"..."   {return OP_PARAMETROS_MULTIPLES;}
+
+    /*Espacio*/
+" "  {}
 
     /*Cadena de caracteres no reconocidos*/
-. {yylval.strval = yytext; return CARAC_NO_RECONOCIDO;}
+. {yylval.strval = strdup(yytext); return CARAC_NO_RECONOCIDO;}
     
 %% 

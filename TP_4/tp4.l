@@ -18,7 +18,7 @@ SUFIJO_REAL [FfLlDd]
 SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\n|\\r|\\t|\\v)
 
 TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void|enum|struct|typedef|union)
-ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|fo|return|goto)
+ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return|goto)
 OTRA_PALABRA_RESERVADA (volatile|goto|extern|static|auto|register)
 
 CARACTER_DE_PUNTUACION (;|,|\(|\)|\{|\}|:|\.\.\.)
@@ -40,7 +40,21 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 \"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = strdup(yytext); return LITERAL_CADENA;}    
     /*Palabra Reservada*/
 {TIPO_DE_DATO}             {yylval.strval = strdup(yytext); return TIPO_DE_DATO;}
-{ESTRUCTURA_DE_CONTROL}    {yylval.strval = strdup(yytext); return ESTRUCTURA_DE_CONTROL;}
+
+    /*  Estructura de control */
+"switch"        {return TKN_SWITCH;}
+"case"          {return TKN_CASE;}
+"break"         {return TKN_BREAK;}
+"default"       {return TKN_DEFAULT;}
+"continue"      {return TKN_CONTINUE;}
+"do"            {return TKN_DO;}
+"while"         {return TKN_WHILE;}
+"if"            {return TKN_IF;}
+"else"          {return TKN_ELSE;}
+"for"           {return TKN_FOR;}
+"return"        {return TKN_RETURN;}
+"goto"          {return TKN_GOTO;}
+
 {OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}
  
     /*Operador*/
@@ -99,7 +113,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
     /*Espacio*/
 " "  {}
 
-    /*Cadena de caracteres no reconocidos*/
+    /*Caracteres no reconocidos*/
 . {yylval.strval = strdup(yytext); return CARAC_NO_RECONOCIDO;}
     
 %% 

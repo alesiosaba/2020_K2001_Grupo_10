@@ -7,6 +7,7 @@
 
 int flag_error=0;
 int contador=0;
+char* tipoSentencia = NULL;
 
 FILE* yyin;
 int yylex();
@@ -68,12 +69,87 @@ int yywrap(){
 %token OP_AND
 %token OP_CONDICIONAL
 %token OP_PARAMETROS_MULTIPLES 
+// Estructuras de control
+%token TKN_SWITCH
+%token TKN_CASE
+%token TKN_BREAK
+%token TKN_DEFAULT
+%token TKN_CONTINUE
+%token TKN_DO
+%token TKN_WHILE
+%token TKN_IF
+%token TKN_ELSE
+%token TKN_FOR
+%token TKN_RETURN
+%token TKN_GOTO
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
-input:    TIPO_DE_DATO IDENTIFICADOR {printf("%s %s",$<strval>1,$<strval>2);} 
+input:    sentencia {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
 ;
 
+sentencia:  sentenciaExpresion {tipoSentencia = "expresion";}
+          | sentenciaCompuesta {tipoSentencia = "compuesta";}
+          | sentenciaDeSeleccion {tipoSentencia = "de seleccion";} 
+          | sentenciaDeIteracion {tipoSentencia = "de iteracion";}
+          | sentenciaEtiquetada {tipoSentencia = "etiquetada";}
+          | sentenciaDeSalto {tipoSentencia = "de salto";}   
+;
+
+sentenciaExpresion: /* vacio */ ';' {printf("Se detecto una sentencia vacia\n\n");}
+                    | expresion ';'        
+;
+
+sentenciaCompuesta:   '{' /* vacio */ '}'
+                    | '{' listaDeDeclaraciones '}'
+                    | '{' listaDeSentencias '}'
+                    | '{' listaDeDeclaraciones listaDeSentencias '}'
+;
+
+listaDeDeclaraciones:   declaracion
+                      | listaDeDeclaraciones declaracion 
+;
+
+declaracion: TIPO_DE_DATO IDENTIFICADOR
+;
+
+listaDeSentencias:    sentencia
+                    | listaDeSentencias sentencia
+;
+
+sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                    {printf("1.");}
+                      | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia {printf("2.");}
+                      | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia            {printf("3.");}
+;
+
+sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                           {printf("1.");}
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                {printf("2.");}
+                      | TKN_FOR '(' ';' ';' ')' sentencia                               {printf("3.");}
+                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                     {printf("4.");}
+                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia           {printf("5.");}
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia {printf("6.");}
+;
+
+sentenciaEtiquetada:    TKN_CASE expresionConstante ':' sentencia {printf("1.");}
+                      | TKN_DEFAULT ':' sentencia                 {printf("2.");}
+                      | IDENTIFICADOR ':' sentencia               {printf("3.");}
+; 
+
+sentenciaDeSalto:   TKN_CONTINUE ';'            {printf("1.");}
+                  | TKN_BREAK ';'               {printf("2.");}
+                  | TKN_RETURN ';'              {printf("3.");}
+                  | TKN_RETURN expresion ';'    {printf("4.");}
+                  | TKN_GOTO IDENTIFICADOR ';'  {printf("5.");}
+;
+
+/*CAMBIAR PARA DESPUES*/
+expresion: IDENTIFICADOR '=' ENTERO
+           | IDENTIFICADOR
+           | IDENTIFICADOR OP_INC
+;
+
+expresionConstante: ENTERO
+;
 
 %%
 

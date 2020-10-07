@@ -15,7 +15,7 @@ DIGITO_HEXADECIMAL [a-fA-F0-9]
 
 LETRA [a-zA-Z] 
 SUFIJO_REAL [FfLlDd]
-SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\n|\\r|\\t|\\v)
+SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\r|\\t|\\v)
 
 TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void|enum|struct|typedef|union)
 ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return|goto)
@@ -56,7 +56,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "goto"          {return TKN_GOTO;}
 
 {OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}
- 
+
     /*Operador*/
 "["         {return '[';}
 "]"         {return ']';}
@@ -72,7 +72,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "&"         {return '&';}
 "*"         {return '*';}
 "/"         {return '/';}
-"%"         {return '%';}
+"%"         {return OP_PORCENTAJE;}
 "<<"        {return OP_DESPLAZAMIENTO_IZQ;}      
 ">>"        {return OP_DESPLAZAMIENTO_DER;}      
 "<"         {return '<';}
@@ -97,6 +97,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "||"        {return OP_OR;}
 "&&"        {return OP_AND;}
 "?:"        {return OP_CONDICIONAL;}
+"?"         {return '?';}
 
     /*Identificador*/
 ({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {yylval.strval = strdup(yytext); return IDENTIFICADOR;} 
@@ -112,6 +113,9 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 
     /*Espacio*/
 " "  {}
+
+    /*Salto de linea*/
+"\n"    {return '\n';}
 
     /*Caracteres no reconocidos*/
 . {yylval.strval = strdup(yytext); return CARAC_NO_RECONOCIDO;}

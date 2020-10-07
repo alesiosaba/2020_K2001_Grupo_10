@@ -69,6 +69,7 @@ int yywrap(){
 %token OP_AND
 %token OP_CONDICIONAL
 %token OP_PARAMETROS_MULTIPLES 
+%token OP_PORCENTAJE
 // Estructuras de control
 %token TKN_SWITCH
 %token TKN_CASE
@@ -85,8 +86,16 @@ int yywrap(){
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
-input:    sentencia {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
+input:    /* vacio */
+        | input line
 ;
+
+line:     '\n'
+        | sentencia       {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
+        | sentencia '\n'  {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);}   
+;
+
+/*  GRAMATICA DE SENTENCIAS  */
 
 sentencia:  sentenciaExpresion {tipoSentencia = "expresion";}
           | sentenciaCompuesta {tipoSentencia = "compuesta";}
@@ -117,38 +126,153 @@ listaDeSentencias:    sentencia
                     | listaDeSentencias sentencia
 ;
 
-sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                    {printf("1.");}
-                      | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia {printf("2.");}
-                      | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia            {printf("3.");}
+sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                    
+                      | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia 
+                      | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia            
 ;
 
-sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                           {printf("1.");}
-                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                {printf("2.");}
-                      | TKN_FOR '(' ';' ';' ')' sentencia                               {printf("3.");}
-                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                     {printf("4.");}
-                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia           {printf("5.");}
-                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia {printf("6.");}
+sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                             
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                  
+                      | TKN_FOR '(' ';' ';' ')' sentencia                                 
+                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                       
+                      | TKN_FOR '('  ';' expresion ';' ')' sentencia                      
+                      | TKN_FOR '('  ';' ';' expresion ')' sentencia                      
+                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia             
+                      | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia            
+                      | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia            
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia   
 ;
 
-sentenciaEtiquetada:    TKN_CASE expresionConstante ':' sentencia {printf("1.");}
-                      | TKN_DEFAULT ':' sentencia                 {printf("2.");}
-                      | IDENTIFICADOR ':' sentencia               {printf("3.");}
+sentenciaEtiquetada:    TKN_CASE expresionConstante ':' sentencia 
+                      | TKN_DEFAULT ':' sentencia                 
+                      | IDENTIFICADOR ':' sentencia               
 ; 
 
-sentenciaDeSalto:   TKN_CONTINUE ';'            {printf("1.");}
-                  | TKN_BREAK ';'               {printf("2.");}
-                  | TKN_RETURN ';'              {printf("3.");}
-                  | TKN_RETURN expresion ';'    {printf("4.");}
-                  | TKN_GOTO IDENTIFICADOR ';'  {printf("5.");}
+sentenciaDeSalto:   TKN_CONTINUE ';'            
+                  | TKN_BREAK ';'               
+                  | TKN_RETURN ';'              
+                  | TKN_RETURN expresion ';'    
+                  | TKN_GOTO IDENTIFICADOR ';'  
 ;
 
-/*CAMBIAR PARA DESPUES*/
-expresion: IDENTIFICADOR '=' ENTERO
-           | IDENTIFICADOR
-           | IDENTIFICADOR OP_INC
+/*  GRAMATICA DE EXPRESIONES  */
+
+expresion:    expresionDeAsignacion   
+            | expresion ',' expresionDeAsignacion 
 ;
 
-expresionConstante: ENTERO
+expresionDeAsignacion:    expresionCondicional  
+                        | expresionUnaria operadorAsignacion expresionDeAsignacion
+;
+
+expresionCondicional:   expresionOlogico  
+                      | expresionOlogico '?' expresion ':' expresionCondicional
+;
+
+operadorAsignacion: '=' 
+                    | OP_ASIG_MULTIPLICACION
+                    | OP_ASIG_DIVISION
+                    | OP_ASIG_RESTO
+                    | OP_ASIG_SUMA
+                    | OP_ASIG_RESTA
+                    | OP_ASIG_DESPLAZAMIENTO_IZQ
+                    | OP_ASIG_DESPLAZAMIENTO_DER
+                    | OP_ASIG_AND_BIT
+                    | OP_ASIG_OR_BIT
+                    | OP_ASIG_POTENCIA
+;
+
+expresionOlogico:   expresionYlogico  
+                  | expresionOlogico OP_OR expresionYlogico
+;
+
+expresionYlogico:   expresionOinclusivo 
+                  | expresionYlogico OP_AND expresionOinclusivo
+;
+
+expresionOinclusivo:   expresionOexcluyente 
+                     | expresionOinclusivo '|' expresionOexcluyente
+;
+
+expresionOexcluyente:   expresionY 
+                      | expresionOexcluyente '^' expresionY
+;
+
+expresionY:   expresionDeIgualdad 
+            | expresionY '&' expresionDeIgualdad
+;
+
+expresionDeIgualdad:    expresionRelacional 
+                      | expresionDeIgualdad OP_IGUALDAD expresionRelacional
+                      | expresionDeIgualdad OP_DESIGUALDAD expresionRelacional
+;
+
+expresionRelacional:      expresionDeCorrimiento  
+                        | expresionRelacional '<' expresionDeCorrimiento
+                        | expresionRelacional '>' expresionDeCorrimiento
+                        | expresionRelacional OP_MENOR_IGUAL expresionDeCorrimiento
+                        | expresionRelacional OP_MAYOR_IGUAL expresionDeCorrimiento
+;
+
+expresionDeCorrimiento:     expresionAditiva  
+                          | expresionDeCorrimiento OP_DESPLAZAMIENTO_IZQ expresionAditiva 
+                          | expresionDeCorrimiento OP_DESPLAZAMIENTO_DER expresionAditiva
+;
+
+expresionAditiva:     expresionMultiplicativa 
+                    | expresionAditiva '+' expresionMultiplicativa 
+                    | expresionAditiva '-' expresionMultiplicativa
+;
+
+expresionMultiplicativa:    expresionDeConversion 
+                          | expresionMultiplicativa '*' expresionDeConversion
+                          | expresionMultiplicativa '/' expresionDeConversion
+                          | expresionMultiplicativa OP_PORCENTAJE expresionDeConversion
+;
+
+expresionDeConversion:    expresionUnaria   
+                        | '(' nombreDeTipo ')' expresionDeConversion
+;
+
+expresionUnaria:    expresionSufijo               
+                  | OP_INC expresionUnaria
+                  | OP_DEC expresionUnaria
+                  | operadorUnario expresionDeConversion 
+                  | OP_SIZEOF expresionUnaria
+                  | OP_SIZEOF '(' nombreDeTipo ')'
+;
+
+operadorUnario:   '&' | '*' | '+' | '-' | '~' | '!' | '<'
+;
+
+expresionSufijo:    |  expresionPrimaria                          
+                    |  expresionSufijo '[' expresion ']' 
+                    |  expresionSufijo '(' listaDeArgumentos ')' 
+                    |  expresionSufijo '(' ')' 
+                    |  expresionSufijo '.' IDENTIFICADOR
+                    |  expresionSufijo OP_ACCESO_ATRIBUTO IDENTIFICADOR 
+                    |  expresionSufijo OP_INC 
+                    |  expresionSufijo OP_DEC
+;
+
+listaDeArgumentos:    expresionDeAsignacion                         
+                    | listaDeArgumentos ',' expresionDeAsignacion  
+;
+
+expresionPrimaria:    IDENTIFICADOR               
+                    | expresionConstante           
+                    | LITERAL_CADENA               
+                    | '(' expresion ')'             
+;
+
+expresionConstante:   ENTERO                  
+                    | NUM                     
+                    | CONST_CARACTER          
+;
+
+/*  GRAMATICA DE DECLARACIONES  */
+
+nombreDeTipo: /* vacio */
 ;
 
 %%

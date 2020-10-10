@@ -39,6 +39,7 @@ int yywrap(){
 // Palabras Reservadas
 %token <strval> TIPO_DE_DATO 
 %token <strval> ESTRUCTURA_DE_CONTROL
+%token <strval> CLASE_ALMACENAMIENTO
 %token <strval> OTRA_PALABRA_RESERVADA
 // Identificadores
 %token <strval> IDENTIFICADOR     
@@ -83,6 +84,12 @@ int yywrap(){
 %token TKN_FOR
 %token TKN_RETURN
 %token TKN_GOTO
+//Estructuras Tipo
+%token TKN_CONST
+%token TKN_VOLATILE
+%token TKN_STRUCT
+%token TKN_UNION
+%token TKN_ENUM
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
@@ -272,8 +279,87 @@ expresionConstante:   ENTERO
 
 /*  GRAMATICA DE DECLARACIONES  */
 
-nombreDeTipo: /* vacio */
+declaracion:  especificadoresDeDeclaracion listaDeDeclaradores
+            | especificadoresDeDeclaracion
 ;
+
+especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
+                              | especificadorDeClaseDeAlmacenamiento
+                              | especificadorDeTipo especificadoresDeDeclaracion
+                              | especificadorDeTipo
+                              | calificadorDeTipo especificadoresDeDeclaracion
+                              | calificadorDeTipo
+;
+
+listaDeDeclaradores:  declarador
+                    | listaDeDeclaradores ',' declarador
+;
+
+declarador:   decla
+            | decla '=' inicializador
+;
+
+inicializador:  expresionDeAsignacion
+              | {listaDeInicializadores}
+              | {listaDeInicializadores ','}
+;
+listaDeInicializadores:   inicializador
+                        | listaDeInicializadores ',' inicializador
+;
+
+especificadorDeClaseDeAlmacenamiento: CLASE_ALMACENAMIENTO
+;
+
+especificadorDeTipo:  TIPO_DE_DATO
+                    | especificadorDeStructOUnion
+                    | especificadorDeEnum
+                    | nombreDeTypedef
+;
+
+calificadorDeTipo:  TKN_CONST
+                  | TKN_VOLATILE
+;
+
+especificadorDeStructOUnion:  structOUnion IDENTIFICADOR {listaDeDeclaracionesStruct}
+                            | structOUnion {listaDeDeclaraciones}
+                            | structOUnion IDENTIFICADOR
+;
+
+structOUnion:   TKN_STRUCT
+              | TKN_UNION
+;
+
+listaDeDeclaracionesStruct:   declaracionStruct
+                            | listaDeDeclaracionesStruct declaracionStruct
+;
+
+declaracionStruct: listaDeCalificadores declaradoresStruct
+;
+
+listaDeCalificadores:   especificadorDeTipo listaDeCalificadores
+                      | especificadorDeTipo
+                      | calificadorDeTipo listaDeCalificadores
+                      | calificadorDeTipo
+;
+
+declaradoresStruct:   declaStruct
+                    | declaradoresStruct ',' declaStruct
+;
+
+declaStruct:  decla
+            | decla ':' expresionConstante
+            | ':' expresionConstante
+;
+decla:  puntero declaradorDirecto
+      | declaradorDirecto
+;
+puntero:  '*' listaDeCalificadoresTipos
+        | '*'
+        | '*' listaDeCalificadoresTipos puntero
+        | '*' puntero
+;
+listaDeCalificadoresTipos:  calificadorDeTipo
+                          | listaDeCalificadoresTipos calificadorDeTipo
 
 %%
 

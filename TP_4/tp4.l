@@ -17,9 +17,10 @@ LETRA [a-zA-Z]
 SUFIJO_REAL [FfLlDd]
 SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\r|\\t|\\v)
 
-TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void|enum|struct|typedef|union)
-ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return|goto)
-OTRA_PALABRA_RESERVADA (volatile|goto|extern|static|auto|register)
+TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void)
+ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return)
+CLASE_ALMACENAMIENTO (typedef|static|auto|register|extern)
+/*OTRA_PALABRA_RESERVADA (volatile|enum|struct|union)*/
 
 CARACTER_DE_PUNTUACION (;|,|\(|\)|\{|\}|:|\.\.\.)
 OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|\+=|-=|\*=|\/=|%=|&=|^=|\|=|>>=|<<=|^|\||&&|\|\||\?:)
@@ -55,7 +56,13 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "return"        {return TKN_RETURN;}
 "goto"          {return TKN_GOTO;}
 
-{OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}
+/*{OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}*/
+
+"volatile"      {return TKN_VOLATILE;}
+"const"         {return TKN_CONST;}
+"struct"        {return TKN_STRUCT;}
+"union"         {return TKN_UNION;}
+"enum"          {return TKN_ENUM;}
 
     /*Operador*/
 "["         {return '[';}
@@ -119,5 +126,5 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 
     /*Caracteres no reconocidos*/
 . {yylval.strval = strdup(yytext); return CARAC_NO_RECONOCIDO;}
-    
+
 %% 

@@ -20,7 +20,8 @@ SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\r|\\t|\\v)
 TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void)
 ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return)
 CLASE_ALMACENAMIENTO (typedef|static|auto|register|extern)
-/*OTRA_PALABRA_RESERVADA (volatile|enum|struct|union)*/
+/* OTRA_PALABRA_RESERVADA (volatile|enum|struct|union) */
+/* {OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;} */
 
 CARACTER_DE_PUNTUACION (;|,|\(|\)|\{|\}|:|\.\.\.)
 OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|\+=|-=|\*=|\/=|%=|&=|^=|\|=|>>=|<<=|^|\||&&|\|\||\?:)
@@ -56,7 +57,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "return"        {return TKN_RETURN;}
 "goto"          {return TKN_GOTO;}
 
-/*{OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;}*/
+
 
 "volatile"      {return TKN_VOLATILE;}
 "const"         {return TKN_CONST;}

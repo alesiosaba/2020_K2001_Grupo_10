@@ -300,9 +300,10 @@ declarador:   decla
 ;
 
 inicializador:  expresionDeAsignacion
-              | {listaDeInicializadores}
-              | {listaDeInicializadores ','}
+              | '{' listaDeInicializadores '}'
+              | '{' listaDeInicializadores ',' '}'
 ;
+
 listaDeInicializadores:   inicializador
                         | listaDeInicializadores ',' inicializador
 ;
@@ -320,8 +321,8 @@ calificadorDeTipo:  TKN_CONST
                   | TKN_VOLATILE
 ;
 
-especificadorDeStructOUnion:  structOUnion IDENTIFICADOR {listaDeDeclaracionesStruct}
-                            | structOUnion {listaDeDeclaraciones}
+especificadorDeStructOUnion:  structOUnion IDENTIFICADOR '{' listaDeDeclaracionesStruct '}'
+                            | structOUnion '{' listaDeDeclaraciones '}'
                             | structOUnion IDENTIFICADOR
 ;
 
@@ -350,16 +351,84 @@ declaStruct:  decla
             | decla ':' expresionConstante
             | ':' expresionConstante
 ;
+
 decla:  puntero declaradorDirecto
       | declaradorDirecto
 ;
+
 puntero:  '*' listaDeCalificadoresTipos
         | '*'
         | '*' listaDeCalificadoresTipos puntero
         | '*' puntero
 ;
+
 listaDeCalificadoresTipos:  calificadorDeTipo
                           | listaDeCalificadoresTipos calificadorDeTipo
+;                          
+
+declaradorDirecto:   IDENTIFICADOR                  
+                    | '(' decla ')'                     
+                    | declaradorDirecto '[' expresionConstante ']'
+                    | declaradorDirecto '[' ']'
+                    | declaradorDirecto '(' listaTiposParametros ')' declaradorDirecto '(' listaDeIdentificadores ')'
+                    | declaradorDirecto '(' listaTiposParametros ')' declaradorDirecto '(' ')'
+;
+
+listaTiposParametros:   listaDeParametros                     
+                       | listaDeParametros OP_PARAMETROS_MULTIPLES   
+;
+
+listaDeParametros:   declaracionDeParametro
+                    | listaDeParametros ',' declaracionDeParametro
+;
+
+declaracionDeParametro:   especificadoresDeDeclaracion decla
+                         | especificadoresDeDeclaracion declaradorAbstracto
+                         | especificadoresDeDeclaracion
+;
+
+listaDeIdentificadores:   IDENTIFICADOR
+                         | listaDeIdentificadores ',' IDENTIFICADOR
+;
+
+especificadorDeEnum:  TKN_ENUM IDENTIFICADOR '{' listaDeEnumeradores '}'
+                      | TKN_ENUM '{' listaDeEnumeradores '}'
+                      | TKN_ENUM IDENTIFICADOR
+;
+
+listaDeEnumeradores:   enumerador
+                      | listaDeEnumeradores ',' enumerador
+;
+
+enumerador:   constanteDeEnumeracion
+             | constanteDeEnumeracion '=' expresionConstante
+;
+
+constanteDeEnumeracion:   IDENTIFICADOR
+;
+
+nombreDeTypedef:   IDENTIFICADOR
+;
+
+nombreDeTipo:   listaDeCalificadores declaradorAbstracto
+               | listaDeCalificadores
+;
+
+declaradorAbstracto:   puntero
+                      | puntero declaradorAbstractoDirecto
+                      | declaradorAbstractoDirecto
+;
+
+declaradorAbstractoDirecto:   '(' declaradorAbstracto ')'
+                             | declaradorAbstractoDirecto '[' expresionConstante ']'
+                             | declaradorAbstractoDirecto '[' ']'
+                             | '[' expresionConstante ']'
+                             | '[' ']'
+                             | declaradorAbstractoDirecto '(' listaTiposParametros ')'
+                             | declaradorAbstractoDirecto '(' ')'
+                             | '(' listaTiposParametros ')'
+                             | '(' ')'
+;                          
 
 %%
 

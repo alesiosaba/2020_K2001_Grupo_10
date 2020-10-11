@@ -123,6 +123,6 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "\n"    {return '\n';}
 
     /*Caracteres no reconocidos*/
-.   {printf("Se ingreso el caracter no reconocido: %s en la linea %d\n",yytext,yylineno);}
+.   {printf("Se encontro el caracter no reconocido: %s en la linea %d\n\n",yytext,yylineno);}
 
 %% 

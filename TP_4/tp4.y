@@ -4,20 +4,21 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
-#define YYDEBUG 1
 
-extern int lineno;
+extern int yylineno;
 int flag_error=0;
 int contador=0;
 char* tipoSentencia = NULL;
 
 // Llamada por yyparse ante un error 
 void yyerror(char const *s){  //Con yyerror se detecta el error sintáctico     
-    printf("Error: %s\n",s);
+    printf("%s linea: %d\n",s,yylineno);
 }
 
 FILE* yyin;
+
 int yylex();
+
 int yywrap(){
     return(1);
 }
@@ -101,22 +102,24 @@ input:    /* vacio */
 ;
 
 line:     '\n'
-        | sentencia           {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
-        | declaracion         {printf("Se detecto una declaracion\n\n");}  
-;   
-
-/*  GRAMATICA DE SENTENCIAS  */
-
-sentencia:  sentenciaExpresion {tipoSentencia = "expresion";}
-          | sentenciaCompuesta {tipoSentencia = "compuesta";}
-          | sentenciaDeSeleccion {tipoSentencia = "de seleccion";} 
-          | sentenciaDeIteracion {tipoSentencia = "de iteracion";}
-          | sentenciaEtiquetada {tipoSentencia = "etiquetada";}
-          | sentenciaDeSalto {tipoSentencia = "de salto";}   
+        | sentencia '\n'            {if(!flag_error) printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia); else flag_error=0;}  
+        | expresion '\n'            {if(!flag_error) printf("Se detecto una expresion\n\n"); else flag_error=0;}
+        | declaracion '\n'          {printf("Se detecto una declaracion\n\n");}               
 ;
 
-sentenciaExpresion: /* vacio */ ';' {printf("Se detecto una sentencia vacia\n\n");}
-                    | expresion ';'  
+/////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
+
+sentencia:  sentenciaExpresion      {tipoSentencia = "expresion";}
+          | sentenciaCompuesta      {tipoSentencia = "compuesta";}
+          | sentenciaDeSeleccion    {tipoSentencia = "de seleccion";} 
+          | sentenciaDeIteracion    {tipoSentencia = "de iteracion";}
+          | sentenciaEtiquetada     {tipoSentencia = "etiquetada";}
+          | sentenciaDeSalto        {tipoSentencia = "de salto";}
+          | error ';'               {flag_error = 1; printf("Sentencia sintacticamente incorrecta\n\n");}    
+;
+
+sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia vacia\n\n");}
+                    | expresion ';'
 ;
 
 sentenciaCompuesta:   '{' /* vacio */ '}'
@@ -162,10 +165,11 @@ sentenciaDeSalto:   TKN_CONTINUE ';'
                   | TKN_GOTO IDENTIFICADOR ';'  
 ;
 
-/*  GRAMATICA DE EXPRESIONES  */
+////////////////////////////////  GRAMATICA DE EXPRESIONES  ////////////////////////////////
 
-expresion:    expresionDeAsignacion   
-            | expresion ',' expresionDeAsignacion 
+expresion:    expresionDeAsignacion  
+            | expresion ',' expresionDeAsignacion
+            | error '\n' {flag_error = 1; printf("Expresion sintacticamente incorrecta\n\n");} 
 ;
 
 expresionDeAsignacion:    expresionCondicional  
@@ -277,7 +281,7 @@ expresionConstante:   ENTERO
                     | CONST_CARACTER          
 ;
 
-/*  GRAMATICA DE DECLARACIONES  */                    
+////////////////////////////////  GRAMATICA DE DECLARACIONES  ////////////////////////////////                   
 
 declaracion:  especificadoresDeDeclaracion listaDeDeclaradores ';'    
             | especificadoresDeDeclaracion                       
@@ -434,10 +438,6 @@ declaradorAbstractoDirecto:   '(' declaradorAbstracto ')'
 
 int main(){
   yyin = fopen("archivo.c","r");
-
-  #ifdef BISON_DEBUG
-    yydebug = 1;
-  #endif
-
+  printf("\n");
   yyparse();
 }

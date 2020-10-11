@@ -103,8 +103,8 @@ input:    /* vacio */
 
 line:     '\n'
         | sentencia '\n'            {if(!flag_error) printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia); else flag_error=0;}  
-        | expresion '\n'            {if(!flag_error) printf("Se detecto una expresion\n\n"); else flag_error=0;}
-        | declaracion '\n'          {printf("Se detecto una declaracion\n\n");}               
+        | expresion                 {if(!flag_error) printf("Se detecto una expresion\n\n"); else flag_error=0;}
+        | declaracion               {if(!flag_error) printf("Se detecto una declaracion\n\n"); else flag_error=0;}              
 ;
 
 /////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
@@ -167,7 +167,7 @@ sentenciaDeSalto:   TKN_CONTINUE ';'
 
 ////////////////////////////////  GRAMATICA DE EXPRESIONES  ////////////////////////////////
 
-expresion:    expresionDeAsignacion  
+expresion:    expresionDeAsignacion '\n'
             | expresion ',' expresionDeAsignacion
             | error '\n' {flag_error = 1; printf("Expresion sintacticamente incorrecta\n\n");} 
 ;
@@ -283,8 +283,10 @@ expresionConstante:   ENTERO
 
 ////////////////////////////////  GRAMATICA DE DECLARACIONES  ////////////////////////////////                   
 
-declaracion:  especificadoresDeDeclaracion listaDeDeclaradores ';'    
-            | especificadoresDeDeclaracion                       
+declaracion:      especificadoresDeDeclaracion ';' '\n'                       
+                | especificadoresDeDeclaracion listaDeDeclaradores ';' '\n'    
+                | error '\n'                              {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");} 
+                | error ';' '\n'                          {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");}                   
 ;   
 
 especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
@@ -315,7 +317,7 @@ listaDeInicializadores:   inicializador
 especificadorDeClaseDeAlmacenamiento: CLASE_ALMACENAMIENTO
 ;
 
-especificadorDeTipo:  TIPO_DE_DATO
+especificadorDeTipo:  TIPO_DE_DATO 
                     | especificadorDeStructOUnion
                     | especificadorDeEnum
                     | nombreDeTypedef

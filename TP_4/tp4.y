@@ -167,7 +167,8 @@ sentenciaDeSalto:   TKN_CONTINUE ';'
 
 ////////////////////////////////  GRAMATICA DE EXPRESIONES  ////////////////////////////////
 
-expresion:    expresionDeAsignacion '\n'
+expresion:    expresionDeAsignacion 
+            | expresionDeAsignacion '\n'
             | expresion ',' expresionDeAsignacion
             | error '\n' {flag_error = 1; printf("Expresion sintacticamente incorrecta\n\n");} 
 ;
@@ -284,7 +285,10 @@ expresionConstante:   ENTERO
 ////////////////////////////////  GRAMATICA DE DECLARACIONES  ////////////////////////////////                   
 
 declaracion:      especificadoresDeDeclaracion ';' '\n'                       
-                | especificadoresDeDeclaracion listaDeDeclaradores ';' '\n'    
+                | especificadoresDeDeclaracion listaDeDeclaradores ';' '\n'   
+                | especificadoresDeDeclaracion ';'  {printf("ESP DECLA\n");}                    
+                | especificadoresDeDeclaracion listaDeDeclaradores ';'  
+                | error ';'                               {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");} 
                 | error '\n'                              {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");} 
                 | error ';' '\n'                          {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");}                   
 ;   
@@ -292,7 +296,7 @@ declaracion:      especificadoresDeDeclaracion ';' '\n'
 especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
                               | especificadorDeClaseDeAlmacenamiento
                               | especificadorDeTipo especificadoresDeDeclaracion
-                              | especificadorDeTipo
+                              | especificadorDeTipo  {printf("ESP TIPO\n");}  
                               | calificadorDeTipo especificadoresDeDeclaracion
                               | calificadorDeTipo
 ;
@@ -317,7 +321,7 @@ listaDeInicializadores:   inicializador
 especificadorDeClaseDeAlmacenamiento: CLASE_ALMACENAMIENTO
 ;
 
-especificadorDeTipo:  TIPO_DE_DATO 
+especificadorDeTipo:  TIPO_DE_DATO {printf("TIPO %s\n",$<strval>1);} 
                     | especificadorDeStructOUnion
                     | especificadorDeEnum
                     | nombreDeTypedef
@@ -372,7 +376,7 @@ listaDeCalificadoresTipos:  calificadorDeTipo
                           | listaDeCalificadoresTipos calificadorDeTipo
 ;                          
 
-declaradorDirecto:   IDENTIFICADOR                  
+declaradorDirecto:   IDENTIFICADOR              
                     | '(' decla ')'                     
                     | declaradorDirecto '[' expresionConstante ']'
                     | declaradorDirecto '[' ']'

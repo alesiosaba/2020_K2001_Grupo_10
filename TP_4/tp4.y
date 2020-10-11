@@ -31,9 +31,6 @@ int yywrap(){
     char* strval;
 }
 
-// Para que no salga el aviso de conflictos de desplazamiento/reducción
-%expect 891
-
 // axioma
 %start input
 
@@ -104,8 +101,8 @@ input:    /* vacio */
 ;
 
 line:     '\n'
-        | sentencia         {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
-        | sentencia '\n'    {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);}  
+        | sentencia           {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
+        | declaracion         {printf("Se detecto una declaracion\n\n");}  
 ;   
 
 /*  GRAMATICA DE SENTENCIAS  */
@@ -249,7 +246,7 @@ expresionUnaria:    expresionSufijo
                   | OP_DEC expresionUnaria
                   | operadorUnario expresionDeConversion 
                   | OP_SIZEOF expresionUnaria
-                  | OP_SIZEOF '(' nombreDeTipo ')'
+                  | OP_SIZEOF '(' nombreDeTipo ')' 
 ;
 
 operadorUnario:   '&' | '*' | '+' | '-' | '~' | '!' | '<'
@@ -282,8 +279,8 @@ expresionConstante:   ENTERO
 
 /*  GRAMATICA DE DECLARACIONES  */                    
 
-declaracion:  especificadoresDeDeclaracion listaDeDeclaradores
-            | especificadoresDeDeclaracion
+declaracion:  especificadoresDeDeclaracion listaDeDeclaradores ';'    
+            | especificadoresDeDeclaracion                       
 ;   
 
 especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
@@ -431,7 +428,7 @@ declaradorAbstractoDirecto:   '(' declaradorAbstracto ')'
                              | declaradorAbstractoDirecto '(' ')'
                              | '(' listaTiposParametros ')'
                              | '(' ')'
-;  
+;
 
 %%
 

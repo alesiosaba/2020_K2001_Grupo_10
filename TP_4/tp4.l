@@ -20,8 +20,6 @@ SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\r|\\t|\\v)
 TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void)
 ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return)
 CLASE_ALMACENAMIENTO (typedef|static|auto|register|extern)
-/* OTRA_PALABRA_RESERVADA (volatile|enum|struct|union) */
-/* {OTRA_PALABRA_RESERVADA}   {yylval.strval = strdup(yytext); return OTRA_PALABRA_RESERVADA;} */
 
 CARACTER_DE_PUNTUACION (;|,|\(|\)|\{|\}|:|\.\.\.)
 OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|\+=|-=|\*=|\/=|%=|&=|^=|\|=|>>=|<<=|^|\||&&|\|\||\?:)
@@ -104,7 +102,6 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "|"         {return '|';}
 "||"        {return OP_OR;}
 "&&"        {return OP_AND;}
-"?:"        {return OP_CONDICIONAL;}
 "?"         {return '?';}
 
     /*Identificador*/
@@ -126,6 +123,6 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "\n"    {return '\n';}
 
     /*Caracteres no reconocidos*/
-. {yylval.strval = strdup(yytext); return CARAC_NO_RECONOCIDO;}
+.   {printf("Se ingreso el caracter no reconocido: %s en la linea %d\n",yytext,yylineno);}
 
 %% 

@@ -4,14 +4,20 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#define YYDEBUG 1
 
+extern int lineno;
 int flag_error=0;
 int contador=0;
 char* tipoSentencia = NULL;
 
+// Llamada por yyparse ante un error 
+void yyerror(char const *s){  //Con yyerror se detecta el error sintáctico     
+    printf("Error: %s\n",s);
+}
+
 FILE* yyin;
 int yylex();
-int yyerror (char *s);
 int yywrap(){
     return(1);
 }
@@ -24,6 +30,9 @@ int yywrap(){
     double dval;
     char* strval;
 }
+
+// Para que no salga el aviso de conflictos de desplazamiento/reducción
+%expect 891
 
 // axioma
 %start input
@@ -38,13 +47,9 @@ int yywrap(){
 %token <strval> LITERAL_CADENA    
 // Palabras Reservadas
 %token <strval> TIPO_DE_DATO 
-%token <strval> ESTRUCTURA_DE_CONTROL
 %token <strval> CLASE_ALMACENAMIENTO
-%token <strval> OTRA_PALABRA_RESERVADA
 // Identificadores
 %token <strval> IDENTIFICADOR     
-// Cadenas de NO reconocidos
-%token <strval> CARAC_NO_RECONOCIDO
 // Operadores (no unarios)
 %token OP_ACCESO_ATRIBUTO
 %token OP_SIZEOF
@@ -68,7 +73,6 @@ int yywrap(){
 %token OP_ASIG_DESPLAZAMIENTO_DER
 %token OP_OR
 %token OP_AND
-%token OP_CONDICIONAL
 %token OP_PARAMETROS_MULTIPLES 
 %token OP_PORCENTAJE
 // Estructuras de control
@@ -90,6 +94,8 @@ int yywrap(){
 %token TKN_STRUCT
 %token TKN_UNION
 %token TKN_ENUM
+// ERROR
+%token <ival> error
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
@@ -98,9 +104,9 @@ input:    /* vacio */
 ;
 
 line:     '\n'
-        | sentencia       {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
-        | sentencia '\n'  {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);}   
-;
+        | sentencia         {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);} 
+        | sentencia '\n'    {printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia);}  
+;   
 
 /*  GRAMATICA DE SENTENCIAS  */
 
@@ -113,7 +119,7 @@ sentencia:  sentenciaExpresion {tipoSentencia = "expresion";}
 ;
 
 sentenciaExpresion: /* vacio */ ';' {printf("Se detecto una sentencia vacia\n\n");}
-                    | expresion ';'        
+                    | expresion ';'  
 ;
 
 sentenciaCompuesta:   '{' /* vacio */ '}'
@@ -124,9 +130,6 @@ sentenciaCompuesta:   '{' /* vacio */ '}'
 
 listaDeDeclaraciones:   declaracion
                       | listaDeDeclaraciones declaracion 
-;
-
-declaracion: TIPO_DE_DATO IDENTIFICADOR
 ;
 
 listaDeSentencias:    sentencia
@@ -277,11 +280,11 @@ expresionConstante:   ENTERO
                     | CONST_CARACTER          
 ;
 
-/*  GRAMATICA DE DECLARACIONES  */
+/*  GRAMATICA DE DECLARACIONES  */                    
 
 declaracion:  especificadoresDeDeclaracion listaDeDeclaradores
             | especificadoresDeDeclaracion
-;
+;   
 
 especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
                               | especificadorDeClaseDeAlmacenamiento
@@ -428,15 +431,9 @@ declaradorAbstractoDirecto:   '(' declaradorAbstracto ')'
                              | declaradorAbstractoDirecto '(' ')'
                              | '(' listaTiposParametros ')'
                              | '(' ')'
-;                          
+;  
 
 %%
-
-/* Llamada por yyparse ante un error 
-int  yyerror(char *s){
-    printf("Error %s",s);
-}
-*/
 
 int main(){
   yyin = fopen("archivo.c","r");

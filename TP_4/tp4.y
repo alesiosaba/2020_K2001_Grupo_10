@@ -46,6 +46,7 @@ int yywrap(){
 // Palabras Reservadas
 %token <strval> TIPO_DE_DATO 
 %token <strval> CLASE_ALMACENAMIENTO
+%token <strval> TKN_VOID
 // Identificadores
 %token <strval> IDENTIFICADOR     
 // Operadores (no unarios)
@@ -64,11 +65,7 @@ int yywrap(){
 %token OP_ASIG_MULTIPLICACION
 %token OP_ASIG_DIVISION
 %token OP_ASIG_RESTO
-%token OP_ASIG_AND_BIT
 %token OP_ASIG_POTENCIA
-%token OP_ASIG_OR_BIT
-%token OP_ASIG_DESPLAZAMIENTO_IZQ
-%token OP_ASIG_DESPLAZAMIENTO_DER
 %token OP_OR
 %token OP_AND
 %token OP_PARAMETROS_MULTIPLES 
@@ -101,344 +98,107 @@ input:    /* vacio */
         | input line
 ;
 
-line:     '\n'
-        | sentencia '\n'            {if(!flag_error) printf("Se detecto una sentencia de tipo: %s\n\n",tipoSentencia); else flag_error=0;}  
-        | expresion                 {if(!flag_error) printf("Se detecto una expresion\n\n"); else flag_error=0;}
-        | declaracion               {if(!flag_error) printf("Se detecto una declaracion\n\n"); else flag_error=0;}              
+line:   '\n'
+        | expresion         {if(!flag_error) printf("\tSE DETECTO UNA EXPRESION\n\n"); else printf("\tEXPRESION INCORRECTA\n\n");}           
 ;
 
-/////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
-
-sentencia:  sentenciaExpresion      {tipoSentencia = "expresion";}
-          | sentenciaCompuesta      {tipoSentencia = "compuesta";}
-          | sentenciaDeSeleccion    {tipoSentencia = "de seleccion";} 
-          | sentenciaDeIteracion    {tipoSentencia = "de iteracion";}
-          | sentenciaEtiquetada     {tipoSentencia = "etiquetada";}
-          | sentenciaDeSalto        {tipoSentencia = "de salto";}
-          | error ';'               {flag_error = 1; printf("Sentencia sintacticamente incorrecta\n\n");}    
+caracterDeCorte: '\n' | ';' 
 ;
 
-sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia vacia\n\n");}
-                    | expresion ';'
+/////// EXPRESIONES //////
+
+expresion: expAsignacion {printf("Se derivo por expAsignacion\n");}
 ;
 
-sentenciaCompuesta:   '{' /* vacio */ '}'
-                    | '{' listaDeDeclaraciones '}'
-                    | '{' listaDeSentencias '}'
-                    | '{' listaDeDeclaraciones listaDeSentencias '}'
+expAsignacion: expCondicional                             {printf("Se derivo por expCondicional\n");}
+               | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
 ;
 
-listaDeDeclaraciones:   declaracion
-                      | listaDeDeclaraciones declaracion 
+operAsignacion: '='                         {printf("Se utiliza el =\n");}
+                | OP_ASIG_MULTIPLICACION    {printf("Se utiliza el =*\n");}
+                | OP_ASIG_DIVISION          {printf("Se utiliza el =/\n");}
+                | OP_ASIG_RESTO             {printf("Se utiliza el =%\n");}
+                | OP_ASIG_SUMA              {printf("Se utiliza el =+\n");}                        
+                | OP_ASIG_RESTA             {printf("Se utiliza el =-\n");}
+                | OP_ASIG_POTENCIA          {printf("Se utiliza el =^\n");}
+                | error                     {printf("\t ERROR: operador de asignacion incorrecto\n"); flag_error = 1;}
 ;
 
-listaDeSentencias:    sentencia
-                    | listaDeSentencias sentencia
+expCondicional: expOr   {printf("Se derivo por expOr\n");}
 ;
 
-sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                    
-                      | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia 
-                      | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia            
+expOr: expAnd                   {printf("Se derivo por expAnd\n");}   
+       | expOr OP_OR expAnd     {printf("Se agrega expOr\n");}  
 ;
 
-sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                             
-                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                  
-                      | TKN_FOR '(' ';' ';' ')' sentencia                                 
-                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                       
-                      | TKN_FOR '('  ';' expresion ';' ')' sentencia                      
-                      | TKN_FOR '('  ';' ';' expresion ')' sentencia                      
-                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia             
-                      | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia            
-                      | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia            
-                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia   
+expAnd: expIgualdad                     {printf("Se derivo por expIgualdad\n");} 
+        | expAnd OP_AND expIgualdad     {printf("Se agrega expAnd\n");}  
 ;
 
-sentenciaEtiquetada:    TKN_CASE expresionConstante ':' sentencia 
-                      | TKN_DEFAULT ':' sentencia                 
-                      | IDENTIFICADOR ':' sentencia               
-; 
-
-sentenciaDeSalto:   TKN_CONTINUE ';'            
-                  | TKN_BREAK ';'               
-                  | TKN_RETURN ';'              
-                  | TKN_RETURN expresion ';'    
-                  | TKN_GOTO IDENTIFICADOR ';'  
+expIgualdad: expRelacional                                {printf("Se derivo por expRelacional\n");} 
+             | expIgualdad OP_IGUALDAD expRelacional      {printf("Se agrega expIgualdad con ==\n");}  
+             | expIgualdad OP_DESIGUALDAD expRelacional   {printf("Se agrega expIgualdad con !=\n");}  
+             | error                                      {printf("\t ERROR: estructura de expresion de igualdad incorrecta \n"); flag_error = 1;} 
 ;
 
-////////////////////////////////  GRAMATICA DE EXPRESIONES  ////////////////////////////////
-
-expresion:    expresionDeAsignacion 
-            | expresionDeAsignacion '\n'
-            | expresion ',' expresionDeAsignacion
-            | error '\n' {flag_error = 1; printf("Expresion sintacticamente incorrecta\n\n");} 
+expRelacional: expAditiva                                   {printf("Se derivo por expAditiva\n");}  
+               | expRelacional OP_MAYOR_IGUAL expAditiva    {printf("Se agrega expRelacional con >=\n");} 
+               | expRelacional '>' expAditiva               {printf("Se agrega expRelacional con >\n");} 
+               | expRelacional OP_MENOR_IGUAL expAditiva    {printf("Se agrega expRelacional con <=\n");} 
+               | expRelacional '<' expAditiva               {printf("Se agrega expRelacional con <\n");} 
+               | error                                      {printf("\t ERROR: estructura de expresion relacional incorrecta \n"); flag_error = 1;} 
 ;
 
-expresionDeAsignacion:    expresionCondicional  
-                        | expresionUnaria operadorAsignacion expresionDeAsignacion
+expAditiva: expMultiplicativa                   {printf("Se derivo por expMultiplicativa\n");}  
+            | expAditiva '+' expMultiplicativa  {printf("Se agrega expAditiva con +\n");} 
+            | expAditiva '-' expMultiplicativa  {printf("Se agrega expAditiva con -\n");} 
+            | error                             {printf("\t ERROR: estructura de expresion aditiva incorrecta \n"); flag_error = 1;} 
 ;
 
-expresionCondicional:   expresionOlogico  
-                      | expresionOlogico '?' expresion ':' expresionCondicional
+expMultiplicativa: expUnaria                            {printf("Se derivo por expUnaria\n");} 
+                   | expMultiplicativa '*' expUnaria    {printf("Se agrega expMultiplicativa con *\n");} 
+                   | expMultiplicativa '/' expUnaria    {printf("Se agrega expMultiplicativa con /\n");}
+                   | expMultiplicativa '%' expUnaria    {printf("Se agrega expMultiplicativa con %\n");}
+                   | error                              {printf("\t ERROR: estructura de expresion multiplicativa incorrecta \n"); flag_error = 1;} 
 ;
 
-operadorAsignacion: '=' 
-                    | OP_ASIG_MULTIPLICACION
-                    | OP_ASIG_DIVISION
-                    | OP_ASIG_RESTO
-                    | OP_ASIG_SUMA
-                    | OP_ASIG_RESTA
-                    | OP_ASIG_DESPLAZAMIENTO_IZQ
-                    | OP_ASIG_DESPLAZAMIENTO_DER
-                    | OP_ASIG_AND_BIT
-                    | OP_ASIG_OR_BIT
-                    | OP_ASIG_POTENCIA
+expUnaria: expPostfijo                          {printf("Se derivo por expPostfijo\n");} 
+           | OP_INC expUnaria                   {printf("Se derivo por ++ expUnaria\n");} 
+           | OP_DEC expUnaria                   {printf("Se derivo por -- expUnaria\n");} 
+           | operUnario expUnaria               {printf("Se derivo por operUnario expUnaria\n");} 
+           | OP_SIZEOF '(' TIPO_DE_DATO ')'     {printf("Se derivo por sizeof ( TIPO_DE_DATO )\n");} 
+           | error                              {printf("\t ERROR: estructura de expresion unaria incorrecta \n"); flag_error = 1;} 
+;           
+
+operUnario: '&'     {printf("Se derivo por operUnario con &\n");}  
+            | '*'   {printf("Se derivo por operUnario con *\n");}     
+            | error {printf("\t ERROR: operador unario incorrecto\n"); flag_error = 1;}      
 ;
 
-expresionOlogico:   expresionYlogico  
-                  | expresionOlogico OP_OR expresionYlogico
+expPostfijo: expPrimaria                            {printf("Se derivo por expPrimaria\n");} 
+             | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");} 
+             | expPostfijo '(' listaArgumentos ')'  {printf("Se agrega ( listaArgumentos ) a expPostfijo\n");} 
+             | expPostfijo '(' ')'                  {printf("Se agrega () a expPostfijo\n");}
+             | error                                {printf("\t ERROR: estructura de expresion postfijo incorrecta \n"); flag_error = 1;} 
 ;
 
-expresionYlogico:   expresionOinclusivo 
-                  | expresionYlogico OP_AND expresionOinclusivo
+listaArgumentos: expAsignacion                          {printf("Se derivo por expAsignacion en la lista de parametros\n");} 
+                 | expAsignacion ',' listaArgumentos    {printf("Se agrega argumento a la lista de parametros\n");}
 ;
 
-expresionOinclusivo:   expresionOexcluyente 
-                     | expresionOinclusivo '|' expresionOexcluyente
+expPrimaria: IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $<strval>1);}
+             | constante           {printf("Se derivo una constante\n");} 
+             | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
+             | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");}
+             | error               {printf("\t ERROR: expresion primaria incorrecta\n"); flag_error = 1;}
 ;
 
-expresionOexcluyente:   expresionY 
-                      | expresionOexcluyente '^' expresionY
+constante:  ENTERO                 {printf("Se derivo la constante entera: %d\n",$<ival>1);}   
+            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1);}     
+            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1);} 
 ;
 
-expresionY:   expresionDeIgualdad 
-            | expresionY '&' expresionDeIgualdad
-;
-
-expresionDeIgualdad:    expresionRelacional 
-                      | expresionDeIgualdad OP_IGUALDAD expresionRelacional
-                      | expresionDeIgualdad OP_DESIGUALDAD expresionRelacional
-;
-
-expresionRelacional:      expresionDeCorrimiento  
-                        | expresionRelacional '<' expresionDeCorrimiento
-                        | expresionRelacional '>' expresionDeCorrimiento
-                        | expresionRelacional OP_MENOR_IGUAL expresionDeCorrimiento
-                        | expresionRelacional OP_MAYOR_IGUAL expresionDeCorrimiento
-;
-
-expresionDeCorrimiento:     expresionAditiva  
-                          | expresionDeCorrimiento OP_DESPLAZAMIENTO_IZQ expresionAditiva 
-                          | expresionDeCorrimiento OP_DESPLAZAMIENTO_DER expresionAditiva
-;
-
-expresionAditiva:     expresionMultiplicativa 
-                    | expresionAditiva '+' expresionMultiplicativa 
-                    | expresionAditiva '-' expresionMultiplicativa
-;
-
-expresionMultiplicativa:    expresionDeConversion 
-                          | expresionMultiplicativa '*' expresionDeConversion
-                          | expresionMultiplicativa '/' expresionDeConversion
-                          | expresionMultiplicativa OP_PORCENTAJE expresionDeConversion
-;
-
-expresionDeConversion:    expresionUnaria   
-                        | '(' nombreDeTipo ')' expresionDeConversion
-;
-
-expresionUnaria:    expresionSufijo               
-                  | OP_INC expresionUnaria
-                  | OP_DEC expresionUnaria
-                  | operadorUnario expresionDeConversion 
-                  | OP_SIZEOF expresionUnaria
-                  | OP_SIZEOF '(' nombreDeTipo ')' 
-;
-
-operadorUnario:   '&' | '*' | '+' | '-' | '~' | '!' | '<'
-;
-
-expresionSufijo:    |  expresionPrimaria                          
-                    |  expresionSufijo '[' expresion ']' 
-                    |  expresionSufijo '(' listaDeArgumentos ')' 
-                    |  expresionSufijo '(' ')' 
-                    |  expresionSufijo '.' IDENTIFICADOR
-                    |  expresionSufijo OP_ACCESO_ATRIBUTO IDENTIFICADOR 
-                    |  expresionSufijo OP_INC 
-                    |  expresionSufijo OP_DEC
-;
-
-listaDeArgumentos:    expresionDeAsignacion                         
-                    | listaDeArgumentos ',' expresionDeAsignacion  
-;
-
-expresionPrimaria:    IDENTIFICADOR               
-                    | expresionConstante           
-                    | LITERAL_CADENA               
-                    | '(' expresion ')'             
-;
-
-expresionConstante:   ENTERO                  
-                    | NUM                     
-                    | CONST_CARACTER          
-;
-
-////////////////////////////////  GRAMATICA DE DECLARACIONES  ////////////////////////////////                   
-
-declaracion:      especificadoresDeDeclaracion ';' '\n'                       
-                | especificadoresDeDeclaracion listaDeDeclaradores ';' '\n'   
-                | especificadoresDeDeclaracion ';'  {printf("ESP DECLA\n");}                    
-                | especificadoresDeDeclaracion listaDeDeclaradores ';'  
-                | error ';'                               {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");} 
-                | error '\n'                              {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");} 
-                | error ';' '\n'                          {flag_error = 1; printf("Declaracion sintacticamente incorrecta\n\n");}                   
-;   
-
-especificadoresDeDeclaracion:   especificadorDeClaseDeAlmacenamiento especificadoresDeDeclaracion
-                              | especificadorDeClaseDeAlmacenamiento
-                              | especificadorDeTipo especificadoresDeDeclaracion
-                              | especificadorDeTipo  {printf("ESP TIPO\n");}  
-                              | calificadorDeTipo especificadoresDeDeclaracion
-                              | calificadorDeTipo
-;
-
-listaDeDeclaradores:  declarador
-                    | listaDeDeclaradores ',' declarador
-;
-
-declarador:   decla
-            | decla '=' inicializador
-;
-
-inicializador:  expresionDeAsignacion
-              | '{' listaDeInicializadores '}'
-              | '{' listaDeInicializadores ',' '}'
-;
-
-listaDeInicializadores:   inicializador
-                        | listaDeInicializadores ',' inicializador
-;
-
-especificadorDeClaseDeAlmacenamiento: CLASE_ALMACENAMIENTO
-;
-
-especificadorDeTipo:  TIPO_DE_DATO {printf("TIPO %s\n",$<strval>1);} 
-                    | especificadorDeStructOUnion
-                    | especificadorDeEnum
-                    | nombreDeTypedef
-;
-
-calificadorDeTipo:  TKN_CONST
-                  | TKN_VOLATILE
-;
-
-especificadorDeStructOUnion:  structOUnion IDENTIFICADOR '{' listaDeDeclaracionesStruct '}'
-                            | structOUnion '{' listaDeDeclaraciones '}'
-                            | structOUnion IDENTIFICADOR
-;
-
-structOUnion:   TKN_STRUCT
-              | TKN_UNION
-;
-
-listaDeDeclaracionesStruct:   declaracionStruct
-                            | listaDeDeclaracionesStruct declaracionStruct
-;
-
-declaracionStruct: listaDeCalificadores declaradoresStruct
-;
-
-listaDeCalificadores:   especificadorDeTipo listaDeCalificadores
-                      | especificadorDeTipo
-                      | calificadorDeTipo listaDeCalificadores
-                      | calificadorDeTipo
-;
-
-declaradoresStruct:   declaStruct
-                    | declaradoresStruct ',' declaStruct
-;
-
-declaStruct:  decla
-            | decla ':' expresionConstante
-            | ':' expresionConstante
-;
-
-decla:  puntero declaradorDirecto
-      | declaradorDirecto
-;
-
-puntero:  '*' listaDeCalificadoresTipos
-        | '*'
-        | '*' listaDeCalificadoresTipos puntero
-        | '*' puntero
-;
-
-listaDeCalificadoresTipos:  calificadorDeTipo
-                          | listaDeCalificadoresTipos calificadorDeTipo
-;                          
-
-declaradorDirecto:   IDENTIFICADOR              
-                    | '(' decla ')'                     
-                    | declaradorDirecto '[' expresionConstante ']'
-                    | declaradorDirecto '[' ']'
-                    | declaradorDirecto '(' listaTiposParametros ')' declaradorDirecto '(' listaDeIdentificadores ')'
-                    | declaradorDirecto '(' listaTiposParametros ')' declaradorDirecto '(' ')'
-;
-
-listaTiposParametros:   listaDeParametros                     
-                       | listaDeParametros OP_PARAMETROS_MULTIPLES   
-;
-
-listaDeParametros:   declaracionDeParametro
-                    | listaDeParametros ',' declaracionDeParametro
-;
-
-declaracionDeParametro:   especificadoresDeDeclaracion decla
-                         | especificadoresDeDeclaracion declaradorAbstracto
-                         | especificadoresDeDeclaracion
-;
-
-listaDeIdentificadores:   IDENTIFICADOR
-                         | listaDeIdentificadores ',' IDENTIFICADOR
-;
-
-especificadorDeEnum:  TKN_ENUM IDENTIFICADOR '{' listaDeEnumeradores '}'
-                      | TKN_ENUM '{' listaDeEnumeradores '}'
-                      | TKN_ENUM IDENTIFICADOR
-;
-
-listaDeEnumeradores:   enumerador
-                      | listaDeEnumeradores ',' enumerador
-;
-
-enumerador:   constanteDeEnumeracion
-             | constanteDeEnumeracion '=' expresionConstante
-;
-
-constanteDeEnumeracion:   IDENTIFICADOR
-;
-
-nombreDeTypedef:   IDENTIFICADOR
-;
-
-nombreDeTipo:   listaDeCalificadores declaradorAbstracto
-               | listaDeCalificadores
-;
-
-declaradorAbstracto:   puntero
-                      | puntero declaradorAbstractoDirecto
-                      | declaradorAbstractoDirecto
-;
-
-declaradorAbstractoDirecto:   '(' declaradorAbstracto ')'
-                             | declaradorAbstractoDirecto '[' expresionConstante ']'
-                             | declaradorAbstractoDirecto '[' ']'
-                             | '[' expresionConstante ']'
-                             | '[' ']'
-                             | declaradorAbstractoDirecto '(' listaTiposParametros ')'
-                             | declaradorAbstractoDirecto '(' ')'
-                             | '(' listaTiposParametros ')'
-                             | '(' ')'
-;
+//////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
 %%
 

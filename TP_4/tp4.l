@@ -17,7 +17,7 @@ LETRA [a-zA-Z]
 SUFIJO_REAL [FfLlDd]
 SECUENCIA_DE_ESCAPE_SIMPLE (\\\?|\\'|\\\\|\\a|\\b|\\f|\\r|\\t|\\v)
 
-TIPO_DE_DATO (char|int|float|double|long|short|signed|unsigned|void)
+TIPO_DE_DATO (char|int|float|double|long|short)
 ESTRUCTURA_DE_CONTROL (switch|case|break|default|continue|do|while|if|else|for|return)
 CLASE_ALMACENAMIENTO (typedef|static|auto|register|extern)
 
@@ -40,6 +40,8 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 \"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = strdup(yytext); return LITERAL_CADENA;}    
     /*Palabra Reservada*/
 {TIPO_DE_DATO}             {yylval.strval = strdup(yytext); return TIPO_DE_DATO;}
+    /* Void */
+"void"          {return TKN_VOID;}
 
     /*  Estructura de control */
 "switch"        {return TKN_SWITCH;}
@@ -93,11 +95,7 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "*="        {return OP_ASIG_MULTIPLICACION;}
 "/="        {return OP_ASIG_DIVISION;}
 "%="        {return OP_ASIG_RESTO;}
-"&="        {return OP_ASIG_AND_BIT;}
-"^="        {return OP_ASIG_POTENCIA;}
-"|="        {return OP_ASIG_OR_BIT;}
-"<<="       {return OP_ASIG_DESPLAZAMIENTO_IZQ;}                 
-">>="       {return OP_ASIG_DESPLAZAMIENTO_DER;}                 
+"^="        {return OP_ASIG_POTENCIA;}             
 "^"         {return '^';}
 "|"         {return '|';}
 "||"        {return OP_OR;}

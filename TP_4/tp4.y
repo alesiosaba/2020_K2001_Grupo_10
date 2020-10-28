@@ -151,7 +151,7 @@ sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                   
                       | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia {printf("Se detecto una sentencia for\n");}
 ;
 
-sentenciaEtiquetada:    TKN_CASE constante ':' sentencia   {printf("Se detecto una sentencia case de switch\n");}   
+sentenciaEtiquetada:    TKN_CASE constante ':' sentencia            {printf("Se detecto una sentencia case de switch\n");}   
                       | TKN_DEFAULT ':' sentencia                   {printf("Se detecto una sentencia caso default de switch\n");}     
 ; 
 
@@ -162,8 +162,16 @@ sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia 
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion:      TIPO_DE_DATO {tipoDeclaracion = $<strval>1;} dec                 
-                | TKN_VOID {tipoDeclaracion = "void";} declaracionDefinicionFuncion              
+declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec                 
+                | TKN_VOID      {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
+                | struct        {printf("Se derivo por struct\n");}
+;
+
+struct:    TKN_STRUCT IDENTIFICADOR '{' camposStruct '}' ';'                  {printf("Se declara el struct %s\n", $<strval>2);}
+;
+
+camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';'
+                | TIPO_DE_DATO IDENTIFICADOR ';' camposStruct
 ;
 
 dec:      declaracionDefinicionFuncion          
@@ -298,7 +306,7 @@ constante:  ENTERO                 {printf("Se derivo la constante entera: %d\n"
 
 void yyerror (char* s)
 {
-  printf("Error Sintactico en la linea %d = %s \n", yylineno,s);
+  printf("%s: linea %d\n",s,yylineno);
   exit(1);
 }
 

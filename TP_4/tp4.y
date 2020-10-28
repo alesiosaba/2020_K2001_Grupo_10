@@ -9,11 +9,11 @@ extern int yylineno;
 int flag_error=0;
 int contador=0;
 char* tipoSentencia = NULL;
+char* tipoDeclaracion = NULL;
+char valorConstante[100];
 
 // Llamada por yyparse ante un error 
-void yyerror(char const *s){  //Con yyerror se detecta el error sintáctico     
-    printf("%s linea: %d\n",s,yylineno);
-}
+void yyerror(char*);  //Con yyerror se detecta el error sintáctico 
 
 FILE* yyin;
 
@@ -99,15 +99,100 @@ input:    /* vacio */
 ;
 
 line:   '\n'
-        | expresion         {if(!flag_error) printf("\tSE DETECTO UNA EXPRESION\n\n"); else printf("\tEXPRESION INCORRECTA\n\n");}           
+        | expresion         {if(!flag_error) printf("\tSE DETECTO UNA EXPRESION\n\n"); else printf("\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
+        | sentencia         {if(!flag_error) printf("\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
+        | declaracion       {printf("\tSE DETECTO UNA DECLARACION\n");}
 ;
 
-caracterDeCorte: '\n' | ';' 
+/////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
+
+
+sentencia:  sentenciaExpresion      {printf("Se derivo por sentenciaExpresion\n"); tipoSentencia = "expresion";}
+          | sentenciaCompuesta      {printf("Se derivo por sentenciaCompuesta\n"); tipoSentencia = "compuesta";}
+          | sentenciaDeSeleccion    {printf("Se derivo por sentenciaDeSeleccion\n"); tipoSentencia = "de seleccion";} 
+          | sentenciaDeIteracion    {printf("Se derivo por sentenciaDeIteracion\n"); tipoSentencia = "de iteracion";}
+          | sentenciaEtiquetada     {printf("Se derivo por sentenciaEtiquetada\n"); tipoSentencia = "etiquetada";}
+          | sentenciaDeSalto        {printf("Se derivo por sentenciaDeSalto\n"); tipoSentencia = "de salto";}  
 ;
 
-/////// EXPRESIONES //////
+sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia vacia\n");}
+                    | expresion ';'         {printf("Se detecto una sentencia con una expresion\n");}
+;
 
-expresion: expAsignacion {printf("Se derivo por expAsignacion\n");}
+sentenciaCompuesta:   '{' /* vacio */ '}'                            {printf("Se detecto una sentencia compuesta vacia\n");}
+                    | '{' listaDeDeclaraciones '}'                   {printf("Se detecto una sentencia compuesta con una lista de declaraciones\n");}
+                    | '{' listaDeSentencias '}'                      {printf("Se detecto una sentencia compuesta con una lista de sentencias\n");}
+                    | '{' listaDeDeclaraciones listaDeSentencias '}' {printf("Se detecto una sentencia compuesta con una lista de declaraciones y sentencias\n");}
+;
+
+listaDeDeclaraciones:   declaracion
+                      | listaDeDeclaraciones declaracion 
+;
+
+listaDeSentencias:    sentencia
+                    | listaDeSentencias sentencia
+;
+
+sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                      {printf("Se detecto una sentencia if\n");}  
+                      | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia   {printf("Se detecto una sentencia if con else\n");}
+                      | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia              {printf("Se detecto una sentencia switch\n");}
+;
+
+sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                           {printf("Se detecto una sentencia while\n");}          
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                {printf("Se detecto una sentencia do while\n");}  
+                      | TKN_FOR '(' ';' ';' ')' sentencia                               {printf("Se detecto una sentencia for\n");}    
+                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                     {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '('  ';' expresion ';' ')' sentencia                    {printf("Se detecto una sentencia for\n");} 
+                      | TKN_FOR '('  ';' ';' expresion ')' sentencia                    {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia           {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia          {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia          {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia {printf("Se detecto una sentencia for\n");}
+;
+
+sentenciaEtiquetada:    TKN_CASE constante ':' sentencia   {printf("Se detecto una sentencia case de switch\n");}   
+                      | TKN_DEFAULT ':' sentencia                   {printf("Se detecto una sentencia caso default de switch\n");}     
+; 
+
+sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia break\n");}
+                  | TKN_RETURN ';'            {printf("Se detecto una sentencia return sin expresion\n");}  
+                  | TKN_RETURN expresion ';'  {printf("Se detecto una sentencia return con valor a retornar\n");}
+;
+
+////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
+
+declaracion: declaracionVariables ';'                {printf("Declaracion de variables\n");}
+             | declaracionDefinicionFuncion ';'      {printf("Declaracion / Definicion de una funcion\n");} 
+;
+
+declaracionVariables: TIPO_DE_DATO {tipoDeclaracion = $<strval>1;} listaIdentificadores {printf("Comienza declaracion de variables del tipo %s\n",$<strval>1);}
+;
+
+listaIdentificadores: declaIdentificador                            {printf("Derivo por declaIdentificador\n");}
+                      | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
+;
+
+declaIdentificador: IDENTIFICADOR                   {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
+                    | IDENTIFICADOR '=' constante   {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
+;
+
+declaracionDefinicionFuncion:     declaracionFuncion
+                                | definicionFuncion                     
+;
+
+declaracionFuncion: tipoFuncion IDENTIFICADOR '(' listaParametros ')' sentenciaCompuesta {printf("Declara la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
+;
+
+definicionFuncion: tipoFuncion IDENTIFICADOR '(' listaParametros ')' {printf("Define la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
+;
+
+tipoFuncion:    TIPO_DE_DATO    {printf("Derivo por tipoFuncion con TIPO_DE_DATO\n"); tipoDeclaracion = $<strval>1;}
+                | TKN_VOID      {printf("Derivo por tipoFuncion con VOID\n"); tipoDeclaracion = "void";}
+;
+
+////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
+
+expresion: expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
 ;
 
 expAsignacion: expCondicional                             {printf("Se derivo por expCondicional\n");}
@@ -121,7 +206,6 @@ operAsignacion: '='                         {printf("Se utiliza el =\n");}
                 | OP_ASIG_SUMA              {printf("Se utiliza el =+\n");}                        
                 | OP_ASIG_RESTA             {printf("Se utiliza el =-\n");}
                 | OP_ASIG_POTENCIA          {printf("Se utiliza el =^\n");}
-                | error                     {printf("\t ERROR: operador de asignacion incorrecto\n"); flag_error = 1;}
 ;
 
 expCondicional: expOr   {printf("Se derivo por expOr\n");}
@@ -138,48 +222,44 @@ expAnd: expIgualdad                     {printf("Se derivo por expIgualdad\n");}
 expIgualdad: expRelacional                                {printf("Se derivo por expRelacional\n");} 
              | expIgualdad OP_IGUALDAD expRelacional      {printf("Se agrega expIgualdad con ==\n");}  
              | expIgualdad OP_DESIGUALDAD expRelacional   {printf("Se agrega expIgualdad con !=\n");}  
-             | error                                      {printf("\t ERROR: estructura de expresion de igualdad incorrecta \n"); flag_error = 1;} 
 ;
 
-expRelacional: expAditiva                                   {printf("Se derivo por expAditiva\n");}  
-               | expRelacional OP_MAYOR_IGUAL expAditiva    {printf("Se agrega expRelacional con >=\n");} 
-               | expRelacional '>' expAditiva               {printf("Se agrega expRelacional con >\n");} 
-               | expRelacional OP_MENOR_IGUAL expAditiva    {printf("Se agrega expRelacional con <=\n");} 
-               | expRelacional '<' expAditiva               {printf("Se agrega expRelacional con <\n");} 
-               | error                                      {printf("\t ERROR: estructura de expresion relacional incorrecta \n"); flag_error = 1;} 
+expRelacional: expAditiva                                    {printf("Se derivo por expAditiva\n");}  
+               | expRelacional operadorRelacional expAditiva {printf("Se agrega expRelacional\n");}  
 ;
+
+operadorRelacional: OP_MAYOR_IGUAL   {printf("Se derivo el operador >=\n");} 
+                    | '>'            {printf("Se derivo el operador >\n");}    
+                    | OP_MENOR_IGUAL {printf("Se derivo el operador <=\n");} 
+                    | '<'            {printf("Se derivo el operador <\n");}
+;  
 
 expAditiva: expMultiplicativa                   {printf("Se derivo por expMultiplicativa\n");}  
             | expAditiva '+' expMultiplicativa  {printf("Se agrega expAditiva con +\n");} 
             | expAditiva '-' expMultiplicativa  {printf("Se agrega expAditiva con -\n");} 
-            | error                             {printf("\t ERROR: estructura de expresion aditiva incorrecta \n"); flag_error = 1;} 
 ;
 
 expMultiplicativa: expUnaria                            {printf("Se derivo por expUnaria\n");} 
                    | expMultiplicativa '*' expUnaria    {printf("Se agrega expMultiplicativa con *\n");} 
                    | expMultiplicativa '/' expUnaria    {printf("Se agrega expMultiplicativa con /\n");}
                    | expMultiplicativa '%' expUnaria    {printf("Se agrega expMultiplicativa con %\n");}
-                   | error                              {printf("\t ERROR: estructura de expresion multiplicativa incorrecta \n"); flag_error = 1;} 
 ;
 
 expUnaria: expPostfijo                          {printf("Se derivo por expPostfijo\n");} 
            | OP_INC expUnaria                   {printf("Se derivo por ++ expUnaria\n");} 
            | OP_DEC expUnaria                   {printf("Se derivo por -- expUnaria\n");} 
            | operUnario expUnaria               {printf("Se derivo por operUnario expUnaria\n");} 
-           | OP_SIZEOF '(' TIPO_DE_DATO ')'     {printf("Se derivo por sizeof ( TIPO_DE_DATO )\n");} 
-           | error                              {printf("\t ERROR: estructura de expresion unaria incorrecta \n"); flag_error = 1;} 
+           | OP_SIZEOF '(' TIPO_DE_DATO ')'     {printf("Se derivo por sizeof ( TIPO_DE_DATO )\n");}
 ;           
 
 operUnario: '&'     {printf("Se derivo por operUnario con &\n");}  
-            | '*'   {printf("Se derivo por operUnario con *\n");}     
-            | error {printf("\t ERROR: operador unario incorrecto\n"); flag_error = 1;}      
+            | '*'   {printf("Se derivo por operUnario con *\n");}
 ;
 
 expPostfijo: expPrimaria                            {printf("Se derivo por expPrimaria\n");} 
              | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");} 
              | expPostfijo '(' listaArgumentos ')'  {printf("Se agrega ( listaArgumentos ) a expPostfijo\n");} 
              | expPostfijo '(' ')'                  {printf("Se agrega () a expPostfijo\n");}
-             | error                                {printf("\t ERROR: estructura de expresion postfijo incorrecta \n"); flag_error = 1;} 
 ;
 
 listaArgumentos: expAsignacion                          {printf("Se derivo por expAsignacion en la lista de parametros\n");} 
@@ -190,17 +270,20 @@ expPrimaria: IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $
              | constante           {printf("Se derivo una constante\n");} 
              | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
              | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");}
-             | error               {printf("\t ERROR: expresion primaria incorrecta\n"); flag_error = 1;}
 ;
 
-constante:  ENTERO                 {printf("Se derivo la constante entera: %d\n",$<ival>1);}   
-            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1);}     
-            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1);} 
+constante:  ENTERO                 {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1);}   
+            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1); sprintf(valorConstante,"%f",$<dval>1);}     
+            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1);} 
 ;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
 %%
+
+void yyerror (char* s)
+{
+  printf("Error Sintactico en la linea %d = %s \n", yylineno,s);
+  exit(1);
+}
 
 int main(){
   yyin = fopen("archivo.c","r");

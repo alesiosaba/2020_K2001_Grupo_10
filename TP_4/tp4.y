@@ -10,6 +10,7 @@ int flag_error=0;
 int contador=0;
 char* tipoSentencia = NULL;
 char* tipoDeclaracion = NULL;
+char* identificador = NULL;
 char valorConstante[100];
 
 // Llamada por yyparse ante un error 
@@ -99,9 +100,9 @@ input:    /* vacio */
 ;
 
 line:   '\n'
-        | expresion         {if(!flag_error) printf("\tSE DETECTO UNA EXPRESION\n\n"); else printf("\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
-        | sentencia         {if(!flag_error) printf("\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
-        | declaracion       {printf("\tSE DETECTO UNA DECLARACION\n");}
+        | expresion         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA EXPRESION\n\n"); else printf("\n^^^\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
+        | sentencia         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\n^^^\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
+        | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); flag_error = 0;}           
 ;
 
 /////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
@@ -161,11 +162,15 @@ sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia 
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion: declaracionVariables ';'                {printf("Declaracion de variables\n");}
-             | declaracionDefinicionFuncion ';'      {printf("Declaracion / Definicion de una funcion\n");} 
+declaracion:      TIPO_DE_DATO {tipoDeclaracion = $<strval>1;} dec                 
+                | TKN_VOID {tipoDeclaracion = "void";} declaracionDefinicionFuncion              
 ;
 
-declaracionVariables: TIPO_DE_DATO {tipoDeclaracion = $<strval>1;} listaIdentificadores {printf("Comienza declaracion de variables del tipo %s\n",$<strval>1);}
+dec:      declaracionDefinicionFuncion          
+        | declaracionVariables ';'            {printf("Declaracion de variables\n");}
+;
+
+declaracionVariables:   listaIdentificadores {printf("Comienza declaracion de variables del tipo %s\n",tipoDeclaracion);}
 ;
 
 listaIdentificadores: declaIdentificador                            {printf("Derivo por declaIdentificador\n");}
@@ -176,28 +181,32 @@ declaIdentificador: IDENTIFICADOR                   {printf("Se declara la varia
                     | IDENTIFICADOR '=' constante   {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
 ;
 
-declaracionDefinicionFuncion:   definicionFuncion
-                                | tipoFuncion IDENTIFICADOR '(' listaParametros ')' ';' {printf("Declara la funcion sin definirla %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
+declaracionDefinicionFuncion:   IDENTIFICADOR {identificador = $<strval>1;} parametrosCuerpoFuncion {printf("Declaracion / Definicion de una funcion\n");}
 ;
 
-definicionFuncion: tipoFuncion IDENTIFICADOR '(' parametrosConId ')' sentenciaCompuesta {printf("Define la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
+parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {printf("Define la funcion %s de tipo %s\n",identificador, tipoDeclaracion);}
+                            | '(' listaParametroConId ')' ';'                   {printf("Declara la funcion %s (prototipo) de tipo %s\n",identificador, tipoDeclaracion);}
+                            | '(' listaParametroSinId ')' ';'                   {printf("Declara la funcion %s (prototipo) de tipo %s\n",identificador, tipoDeclaracion);}
+                            | '(' /* vacio */ ')' sentenciaCompuesta            {printf("Define la funcion %s sin parametros, de tipo %s\n",identificador, tipoDeclaracion);}
+                            | '(' /* vacio */ ')' ';'                           {printf("Declara la funcion %s (prototipo) sin parametros, de tipo %s\n",identificador, tipoDeclaracion);}
 ;
 
-tipoFuncion:    TIPO_DE_DATO    {printf("Derivo por tipoFuncion con TIPO_DE_DATO\n"); tipoDeclaracion = $<strval>1;}
-                | TKN_VOID      {printf("Derivo por tipoFuncion con VOID\n"); tipoDeclaracion = "void";}
+listaParametroConId:      parametroConId
+                        | parametroConId ',' listaParametroConId
 ;
 
-listaParametros: parametrosConId
-                 | parametrosSinId
+listaParametroSinId:      parametroSinId
+                        | parametroSinId ',' listaParametroSinId
 ;
 
-parametrosConId:  TIPO_DE_DATO IDENTIFICADOR
-                 | TIPO_DE_DATO IDENTIFICADOR ',' parametrosConId
+parametroConId:   TIPO_DE_DATO IDENTIFICADOR
+                | TIPO_DE_DATO '*' IDENTIFICADOR
 ;
 
-parametrosSinId:  TIPO_DE_DATO 
-                 | TIPO_DE_DATO  ',' parametrosSinId
+parametroSinId:   TIPO_DE_DATO
+                | TIPO_DE_DATO '*'
 ;
+
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
 
 expresion: expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}

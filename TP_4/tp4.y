@@ -176,20 +176,28 @@ declaIdentificador: IDENTIFICADOR                   {printf("Se declara la varia
                     | IDENTIFICADOR '=' constante   {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
 ;
 
-declaracionDefinicionFuncion:     declaracionFuncion
-                                | definicionFuncion                     
+declaracionDefinicionFuncion:   definicionFuncion
+                                | tipoFuncion IDENTIFICADOR '(' listaParametros ')' ';' {printf("Declara la funcion sin definirla %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
 ;
 
-declaracionFuncion: tipoFuncion IDENTIFICADOR '(' listaParametros ')' sentenciaCompuesta {printf("Declara la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
-;
-
-definicionFuncion: tipoFuncion IDENTIFICADOR '(' listaParametros ')' {printf("Define la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
+definicionFuncion: tipoFuncion IDENTIFICADOR '(' parametrosConId ')' sentenciaCompuesta {printf("Define la funcion %s de tipo %s\n",$<strval>2, tipoDeclaracion);}
 ;
 
 tipoFuncion:    TIPO_DE_DATO    {printf("Derivo por tipoFuncion con TIPO_DE_DATO\n"); tipoDeclaracion = $<strval>1;}
                 | TKN_VOID      {printf("Derivo por tipoFuncion con VOID\n"); tipoDeclaracion = "void";}
 ;
 
+listaParametros: parametrosConId
+                 | parametrosSinId
+;
+
+parametrosConId:  TIPO_DE_DATO IDENTIFICADOR
+                 | TIPO_DE_DATO IDENTIFICADOR ',' parametrosConId
+;
+
+parametrosSinId:  TIPO_DE_DATO 
+                 | TIPO_DE_DATO  ',' parametrosSinId
+;
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
 
 expresion: expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}

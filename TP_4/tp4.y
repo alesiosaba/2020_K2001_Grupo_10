@@ -123,7 +123,7 @@ sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia va
                     | expresion ';'         {printf("Se detecto una sentencia con una expresion\n");}
 ;
 
-sentenciaCompuesta:   '{' interiorSentenciaCompuesta '}'                       
+sentenciaCompuesta:       '{' interiorSentenciaCompuesta '}'
 ;
 
 interiorSentenciaCompuesta:        /* vacio */                              {printf("Se detecto una sentencia compuesta vacia\n");}
@@ -244,24 +244,25 @@ expAsignacion:   expCondicional                           {printf("Se derivo por
                | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
 ;
 
-operAsignacion: '='                         {printf("Se utiliza el =\n");}
+operAsignacion:   '='                       {printf("Se utiliza el =\n");}
                 | OP_ASIG_MULTIPLICACION    {printf("Se utiliza el =*\n");}
                 | OP_ASIG_DIVISION          {printf("Se utiliza el =/\n");}
                 | OP_ASIG_RESTO             {printf("Se utiliza el =%\n");}
                 | OP_ASIG_SUMA              {printf("Se utiliza el =+\n");}                        
                 | OP_ASIG_RESTA             {printf("Se utiliza el =-\n");}
                 | OP_ASIG_POTENCIA          {printf("Se utiliza el =^\n");}
+                | error                     {printf("\t ERROR: operador de asignacion incorrecto\n"); flag_error = 1;}
 ;
 
 expCondicional: expOr   {printf("Se derivo por expOr\n");}
 ;
 
 expOr: expAnd                   {printf("Se derivo por expAnd\n");}   
-       | expOr OP_OR expAnd     {printf("Se agrega expOr\n");}  
+       | expOr OP_OR expAnd     {printf("Se agrega expOr\n");}
 ;
 
 expAnd: expIgualdad                     {printf("Se derivo por expIgualdad\n");} 
-        | expAnd OP_AND expIgualdad     {printf("Se agrega expAnd\n");}  
+        | expAnd OP_AND expIgualdad     {printf("Se agrega expAnd\n");}
 ;
 
 expIgualdad: expRelacional                                {printf("Se derivo por expRelacional\n");} 
@@ -273,10 +274,11 @@ expRelacional: expAditiva                                    {printf("Se derivo 
                | expRelacional operadorRelacional expAditiva {printf("Se agrega expRelacional\n");}  
 ;
 
-operadorRelacional: OP_MAYOR_IGUAL   {printf("Se derivo el operador >=\n");} 
-                    | '>'            {printf("Se derivo el operador >\n");}    
-                    | OP_MENOR_IGUAL {printf("Se derivo el operador <=\n");} 
-                    | '<'            {printf("Se derivo el operador <\n");}
+operadorRelacional:   OP_MAYOR_IGUAL    {printf("Se derivo el operador >=\n");} 
+                    | '>'               {printf("Se derivo el operador >\n");}    
+                    | OP_MENOR_IGUAL    {printf("Se derivo el operador <=\n");} 
+                    | '<'               {printf("Se derivo el operador <\n");}
+                    | error             {printf("\t ERROR: operador relacional incorrecto\n"); flag_error = 1;}
 ;  
 
 expAditiva: expMultiplicativa                   {printf("Se derivo por expMultiplicativa\n");}  
@@ -297,21 +299,22 @@ expUnaria: expPostfijo                          {printf("Se derivo por expPostfi
            | OP_SIZEOF '(' TIPO_DE_DATO ')'     {printf("Se derivo por sizeof ( TIPO_DE_DATO )\n");}
 ;           
 
-operUnario: '&'     {printf("Se derivo por operUnario con &\n");}  
-            | '*'   {printf("Se derivo por operUnario con *\n");}
+operUnario:   '&'       {printf("Se derivo por operUnario con &\n");}  
+            | '*'       {printf("Se derivo por operUnario con *\n");}
+            | error     {printf("\t ERROR: operador unario incorrecto\n"); flag_error = 1;}
 ;
 
-expPostfijo: expPrimaria                            {printf("Se derivo por expPrimaria\n");} 
+expPostfijo:   expPrimaria                          {printf("Se derivo por expPrimaria\n");} 
              | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");} 
              | expPostfijo '(' listaArgumentos ')'  {printf("Se agrega ( listaArgumentos ) a expPostfijo\n");} 
              | expPostfijo '(' ')'                  {printf("Se agrega () a expPostfijo\n");}
 ;
 
-listaArgumentos: expAsignacion                          {printf("Se derivo por expAsignacion en la lista de parametros\n");} 
-                 | expAsignacion ',' listaArgumentos    {printf("Se agrega argumento a la lista de parametros\n");}
+listaArgumentos:   expAsignacion                          {printf("Se derivo por expAsignacion en la lista de parametros\n");} 
+                 | expAsignacion ',' listaArgumentos      {printf("Se agrega argumento a la lista de parametros\n");}
 ;
 
-expPrimaria: IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $<strval>1);}
+expPrimaria:   IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $<strval>1);}
              | constante           {printf("Se derivo una constante\n");} 
              | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
              | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");} 

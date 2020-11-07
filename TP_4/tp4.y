@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#define YYDEBUG 1
 
 extern int yylineno;
 int flag_error=0;
@@ -14,7 +15,9 @@ char* identificador = NULL;
 char valorConstante[100];
 
 // Llamada por yyparse ante un error 
-void yyerror(char*);  //Con yyerror se detecta el error sintáctico 
+void yyerror (char const *s) {          //Con yyerror se detecta el error sintáctico 
+   fprintf (stderr, "%s\n", s);
+}  
 
 FILE* yyin;
 
@@ -102,7 +105,7 @@ input:    /* vacio */
 line:   '\n'
         | expresion         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA EXPRESION\n\n"); else printf("\n^^^\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
         | sentencia         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\n^^^\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
-        | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); flag_error = 0;}           
+        | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tDECLARACION INCORRECTA\n\n"); flag_error = 0;}           
 ;
 
 /////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
@@ -120,10 +123,13 @@ sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia va
                     | expresion ';'         {printf("Se detecto una sentencia con una expresion\n");}
 ;
 
-sentenciaCompuesta:   '{' /* vacio */ '}'                            {printf("Se detecto una sentencia compuesta vacia\n");}
-                    | '{' listaDeDeclaraciones '}'                   {printf("Se detecto una sentencia compuesta con una lista de declaraciones\n");}
-                    | '{' listaDeSentencias '}'                      {printf("Se detecto una sentencia compuesta con una lista de sentencias\n");}
-                    | '{' listaDeDeclaraciones listaDeSentencias '}' {printf("Se detecto una sentencia compuesta con una lista de declaraciones y sentencias\n");}
+sentenciaCompuesta:   '{' interiorSentenciaCompuesta '}'                       
+;
+
+interiorSentenciaCompuesta:        /* vacio */                              {printf("Se detecto una sentencia compuesta vacia\n");}
+                                | listaDeDeclaraciones                      {printf("Se detecto una sentencia compuesta con una lista de declaraciones\n");}
+                                | listaDeSentencias                         {printf("Se detecto una sentencia compuesta con una lista de sentencias\n");}
+                                | listaDeDeclaraciones listaDeSentencias    {printf("Se detecto una sentencia compuesta con una lista de declaraciones y sentencias\n");}
 ;
 
 listaDeDeclaraciones:   declaracion
@@ -162,7 +168,8 @@ sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia 
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec                 
+declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec   
+                | error dec     {printf("\t ERROR: tipo de dato erroneo en comienzo de una Declaracion\n"); flag_error = 1;}              
                 | TKN_VOID      {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
                 | struct        {printf("Se derivo por struct\n");}
 ;
@@ -170,8 +177,10 @@ declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec
 struct:    TKN_STRUCT IDENTIFICADOR '{' camposStruct '}' ';'                  {printf("Se declara el struct %s\n", $<strval>2);}
 ;
 
-camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';'
-                | TIPO_DE_DATO IDENTIFICADOR ';' camposStruct
+camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';' camposStruct   {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
+                | TIPO_DE_DATO IDENTIFICADOR ';'                {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
+                | error ';'                                     {printf("\t ERROR: error en campo de struct \n"); flag_error = 1;}
+                | error                                         {printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}
 ;
 
 dec:      declaracionDefinicionFuncion          
@@ -185,11 +194,16 @@ listaIdentificadores: declaIdentificador                            {printf("Der
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador: IDENTIFICADOR                   {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
-                    | IDENTIFICADOR '=' constante   {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
+declaIdentificador: IDENTIFICADOR                       {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
+                    | IDENTIFICADOR '=' constante       {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
+                    | IDENTIFICADOR '=' IDENTIFICADOR   {printf("Se declara la variable %s de tipo %s con valor inicial igual a la variable %s\n",$<strval>1,tipoDeclaracion,$<strval>3);}
+                    | error                             {printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;}
+                    | error '=' constante               {printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;}
+                    | IDENTIFICADOR '=' error           {printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;}
 ;
 
-declaracionDefinicionFuncion:   IDENTIFICADOR {identificador = $<strval>1;} parametrosCuerpoFuncion {printf("Declaracion / Definicion de una funcion\n");}
+declaracionDefinicionFuncion:     IDENTIFICADOR {identificador = $<strval>1;} parametrosCuerpoFuncion {printf("Declaracion / Definicion de una funcion\n");}
+                                | error parametrosCuerpoFuncion {printf("\t ERROR: falta identificador en declaracion/definicion de funcion\n"); flag_error = 1;}
 ;
 
 parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {printf("Define la funcion %s de tipo %s\n",identificador, tipoDeclaracion);}
@@ -207,12 +221,18 @@ listaParametroSinId:      parametroSinId
                         | parametroSinId ',' listaParametroSinId
 ;
 
-parametroConId:   TIPO_DE_DATO IDENTIFICADOR
-                | TIPO_DE_DATO '*' IDENTIFICADOR
+parametroConId:   TIPO_DE_DATO IDENTIFICADOR       {printf("Se agrega el parametro %s de tipo %s \n",$<strval>2,$<strval>1);} 
+                | TIPO_DE_DATO '*' IDENTIFICADOR   {printf("Se agrega el parametro %s de tipo %s* \n",$<strval>3,$<strval>1);} 
+                | error IDENTIFICADOR              {printf("\t ERROR: falta tipo de dato en parametroConId \n"); flag_error = 1;}
+                | error '*' IDENTIFICADOR          {printf("\t ERROR: falta tipo de dato puntero en parametroConId \n"); flag_error = 1;}
+                | TIPO_DE_DATO error               {printf("\t ERROR: falta identificador en parametroConId \n"); flag_error = 1;}
+                | TIPO_DE_DATO '*' error           {printf("\t ERROR: falta identificador del puntero en parametroConId \n"); flag_error = 1;}
 ;
 
-parametroSinId:   TIPO_DE_DATO
-                | TIPO_DE_DATO '*'
+parametroSinId:   TIPO_DE_DATO         {printf("Se agrega un parametro de tipo %s \n",$<strval>1);} 
+                | TIPO_DE_DATO '*'     {printf("Se agrega un parametro de tipo %s* \n",$<strval>1);} 
+                | error                {printf("\t ERROR: falta tipo de dato en parametroSinId \n"); flag_error = 1;}
+                | error '*'            {printf("\t ERROR: falta tipo de dato del puntero en parametroSinId \n"); flag_error = 1;}
 ;
 
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
@@ -220,7 +240,7 @@ parametroSinId:   TIPO_DE_DATO
 expresion: expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
 ;
 
-expAsignacion: expCondicional                             {printf("Se derivo por expCondicional\n");}
+expAsignacion:   expCondicional                           {printf("Se derivo por expCondicional\n");}
                | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
 ;
 
@@ -294,24 +314,22 @@ listaArgumentos: expAsignacion                          {printf("Se derivo por e
 expPrimaria: IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $<strval>1);}
              | constante           {printf("Se derivo una constante\n");} 
              | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
-             | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");}
+             | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");} 
 ;
 
-constante:  ENTERO                 {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1);}   
+constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1);}   
             | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1); sprintf(valorConstante,"%f",$<dval>1);}     
             | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1);} 
 ;
 
 %%
 
-void yyerror (char* s)
-{
-  printf("%s: linea %d\n",s,yylineno);
-  exit(1);
-}
-
 int main(){
-  yyin = fopen("archivo.c","r");
-  printf("\n");
-  yyparse();
+        #ifdef BISON_DEBUG
+        yydebug = 1;
+        #endif
+
+        yyin = fopen("archivo.c","r");
+        printf("\n");
+        yyparse();
 }

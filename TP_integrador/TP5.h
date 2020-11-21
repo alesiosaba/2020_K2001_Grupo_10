@@ -13,11 +13,11 @@ typedef double (*func_t) (double);
 typedef struct symrec
 {
   char *name;
-  int type; //Tenemos dos tipos: Variable (TYP_VAR) o Función (TYP_FNCT)
+  int type;         //Tenemos dos tipos: Variable (TYP_VAR) o Función (TYP_FNCT)
+  char* tipo;       // Se guarda el tipo ya sea funcion o variable  
   union
   {
-    char* var; //Si es una variable, se guarda su valor  
-    char* tipo; //Si es una variable, se guarda su tipo  
+    char* valor;    //Si es una variable, se guarda su valor  
     func_t fnctptr; //Si es una función, se almacena un puntero a una función
   } value;
   struct symrec *next; //Puntero al siguiente nodo de la lista

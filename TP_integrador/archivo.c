@@ -1,2 +1,2 @@
-char leo = 'A';
-char leo = 'D';
+int a = 3;
+int b = c;

@@ -195,13 +195,13 @@ dec:      declaracionDefinicionFuncion
 declaracionVariables:   listaIdentificadores {printf("Comienza declaracion de variables del tipo %s\n",tipoDeclaracion);}
 ;
 
-listaIdentificadores: declaIdentificador                            {printf("Derivo por declaIdentificador\n");}
+listaIdentificadores:   declaIdentificador                          {printf("Derivo por declaIdentificador\n");}
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador:   IDENTIFICADOR                       {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
+declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else {putsym(strdup($<strval>1),TYP_VAR); printf("\tSe declara la variable %s\n",$<strval>1);} } 
                     | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
-                    | IDENTIFICADOR '=' IDENTIFICADOR   {printf("Se declara la variable %s de tipo %s con valor inicial igual a la variable %s\n",$<strval>1,tipoDeclaracion,$<strval>3);}
+                    | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
                     | error                             {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;} }
                     | error '=' constante               {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;} }
                     | IDENTIFICADOR '=' error           {if(!flag_error){printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;} }
@@ -345,3 +345,4 @@ int main(){
         printf("\n");
         yyparse();
 }
+

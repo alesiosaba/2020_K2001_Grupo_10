@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
-#include "tp4.tab.h"    // archivo generado por BISON
+#include "TP5.tab.h"    // archivo generado por BISON
 %}
 
 DIGITO_DECIMAL [0-9] 

@@ -1,0 +1,1 @@
+struct estructura { int a; int ; char };

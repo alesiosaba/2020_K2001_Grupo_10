@@ -2,8 +2,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include "TP5.h"
+#include "TP5.c"
 #define YYDEBUG 1
 
 extern int yylineno;
@@ -26,6 +29,8 @@ int yylex();
 int yywrap(){
     return(1);
 }
+
+symrec *aux;
 
 %}
 
@@ -178,8 +183,9 @@ struct:    TKN_STRUCT IDENTIFICADOR '{' camposStruct '}' ';'                  {p
 
 camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';' camposStruct   {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
                 | TIPO_DE_DATO IDENTIFICADOR ';'                {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
-                | error ';'                                     {printf("\t ERROR: error en campo de struct \n"); flag_error = 1;}
-                | error                                         {printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}
+                | error ';'                                     {if(!flag_error){printf("\t ERROR: error en campo de struct \n"); flag_error = 1;}}
+                | TIPO_DE_DATO IDENTIFICADOR                    {if(!flag_error){printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}}
+                | TIPO_DE_DATO                                  {if(!flag_error){printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}}
 ;
 
 dec:      declaracionDefinicionFuncion          
@@ -193,12 +199,12 @@ listaIdentificadores: declaIdentificador                            {printf("Der
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador: IDENTIFICADOR                       {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
-                    | IDENTIFICADOR '=' constante       {printf("Se declara la variable %s de tipo %s con valor inicial %s\n",$<strval>1,tipoDeclaracion,valorConstante);}
+declaIdentificador:   IDENTIFICADOR                       {printf("Se declara la variable %s de tipo %s\n",$<strval>1,tipoDeclaracion);}
+                    | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
                     | IDENTIFICADOR '=' IDENTIFICADOR   {printf("Se declara la variable %s de tipo %s con valor inicial igual a la variable %s\n",$<strval>1,tipoDeclaracion,$<strval>3);}
-                    | error                             {printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;}
-                    | error '=' constante               {printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;}
-                    | IDENTIFICADOR '=' error           {printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;}
+                    | error                             {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;} }
+                    | error '=' constante               {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;} }
+                    | IDENTIFICADOR '=' error           {if(!flag_error){printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;} }
 ;
 
 declaracionDefinicionFuncion:     IDENTIFICADOR {identificador = $<strval>1;} parametrosCuerpoFuncion {printf("Declaracion / Definicion de una funcion\n");}
@@ -325,6 +331,10 @@ constante:    ENTERO               {printf("Se derivo la constante entera: %d\n"
 ;
 
 %%
+
+// Define variable puntero que apunta a la tabla de símbolos (TS).
+
+symrec *sym_table;
 
 int main(){
         #ifdef BISON_DEBUG

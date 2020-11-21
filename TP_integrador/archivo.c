@@ -1,1 +1,2 @@
-struct estructura { int a; int ; char };
+char leo = 'A';
+char leo = 'D';

@@ -121,6 +121,6 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "\n"    {return '\n';}
 
     /*Caracteres no reconocidos*/
-.   {printf("Se encontro el caracter no reconocido: %s en la linea %d\n\n",yytext,yylineno);}
+.      {printf("ERROR LEXICO: %s en la linea n: %d\n\n",yytext,yylineno);}
 
-%% 
+%%

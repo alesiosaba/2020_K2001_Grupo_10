@@ -105,7 +105,7 @@ input:    /* vacio */
 line:   '\n'
         | expresion         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA EXPRESION\n\n"); else printf("\n^^^\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
         | sentencia         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\n^^^\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
-        | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tDECLARACION INCORRECTA\n\n"); flag_error = 0;}           
+        | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tDECLARACION INCORRECTA\n\n"); flag_error = 0;}          
 ;
 
 /////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
@@ -168,8 +168,7 @@ sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia 
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec   
-                | error dec     {printf("\t ERROR: tipo de dato erroneo en comienzo de una Declaracion\n"); flag_error = 1;}              
+declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec                 
                 | TKN_VOID      {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
                 | struct        {printf("Se derivo por struct\n");}
 ;

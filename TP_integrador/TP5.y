@@ -41,6 +41,7 @@ symrec *aux;
     int ival; 
     double dval;
     char* strval;
+    char* tipoExpresion;
 }
 
 // axioma
@@ -102,6 +103,21 @@ symrec *aux;
 %token TKN_ENUM
 // ERROR
 %token <ival> error
+// NoTerminales
+%type <tipoExpresion> expUnaria
+%type <tipoExpresion> expAsignacion
+%type <tipoExpresion> expPrimaria
+%type <tipoExpresion> expPostfijo
+%type <tipoExpresion> expMultiplicativa
+%type <tipoExpresion> expAditiva
+%type <tipoExpresion> expRelacional
+%type <tipoExpresion> expIgualdad
+%type <tipoExpresion> expAnd
+%type <tipoExpresion> expOr
+%type <tipoExpresion> expCondicional
+%type <tipoExpresion> expresion
+
+
 
 %% /* A continuacion las reglas gramaticales y las acciones */
 
@@ -246,12 +262,12 @@ parametroSinId:   TIPO_DE_DATO         { agregarParametroAuxiliar($<strval>1);}
 
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
 
-expresion:      expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
+expresion:      expAsignacion {$<tipoExpresion>$=$<tipoExpresion>1; printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
 ;
 
-expAsignacion:    expCondicional                           {printf("Se derivo por expCondicional\n");}
+expAsignacion:    expCondicional                           {printf("\nSe derivo una expCondicional de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
                 | invocacionDeFuncion                      {printf("Se derivo por invocacionDeFuncion\n");}
-                | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
+                | expUnaria operAsignacion expAsignacion   {verificacionDeTiposCorrecta($<tipoExpresion>1,$<tipoExpresion>3);} 
 ;
 
 operAsignacion:   '='                       {printf("Se utiliza el =\n");}
@@ -264,23 +280,23 @@ operAsignacion:   '='                       {printf("Se utiliza el =\n");}
                 | error                     {printf("\t ERROR: operador de asignacion incorrecto\n"); flag_error = 1;}
 ;
 
-expCondicional: expOr   {printf("Se derivo por expOr\n");}
+expCondicional: expOr   {printf("\nSe derivo una expOr de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
 ;
 
-expOr: expAnd                   {printf("Se derivo por expAnd\n");}   
+expOr: expAnd                   {printf("\nSe derivo una expAnd de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
        | expOr OP_OR expAnd     {printf("Se agrega expOr\n");}
 ;
 
-expAnd: expIgualdad                     {printf("Se derivo por expIgualdad\n");} 
+expAnd: expIgualdad                     {printf("\nSe derivo una expIgualdad de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
         | expAnd OP_AND expIgualdad     {printf("Se agrega expAnd\n");}
 ;
 
-expIgualdad: expRelacional                                {printf("Se derivo por expRelacional\n");} 
+expIgualdad: expRelacional                                {printf("\nSe derivo una expRelacional de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
              | expIgualdad OP_IGUALDAD expRelacional      {printf("Se agrega expIgualdad con ==\n");} 
              | expIgualdad OP_DESIGUALDAD expRelacional   {printf("Se agrega expIgualdad con !=\n");}  
 ;
 
-expRelacional: expAditiva                                    {printf("Se derivo por expAditiva\n");}  
+expRelacional: expAditiva                                    {printf("\nSe derivo una expAditiva de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }  
                | expRelacional operadorRelacional expAditiva {printf("Se agrega expRelacional\n");}  
 ;
 
@@ -291,20 +307,22 @@ operadorRelacional:   OP_MAYOR_IGUAL    {printf("Se derivo el operador >=\n");}
                     | error             {printf("\t ERROR: operador relacional incorrecto\n"); flag_error = 1;}
 ;  
 
-expAditiva: expMultiplicativa                   {printf("Se derivo por expMultiplicativa\n");}  
+expAditiva: expMultiplicativa                   {printf("\nSe derivo una expMultiplicativa de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
             | expAditiva '+' expMultiplicativa  {printf("Se agrega expAditiva con +\n");} 
             | expAditiva '-' expMultiplicativa  {printf("Se agrega expAditiva con -\n");} 
 ;
 
-expMultiplicativa: expUnaria                            {printf("Se derivo por expUnaria\n");} 
+expMultiplicativa:   expUnaria                          {printf("\nSe derivo una expUnaria de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
                    | expMultiplicativa '*' expUnaria    {printf("Se agrega expMultiplicativa con *\n");} 
                    | expMultiplicativa '/' expUnaria    {printf("Se agrega expMultiplicativa con /\n");}
                    | expMultiplicativa '%' expUnaria    {printf("Se agrega expMultiplicativa con %\n");}
 ;
 
-expUnaria: expPostfijo                          {printf("Se derivo por expPostfijo\n");} 
+expUnaria: expPostfijo                          {printf("\nSe derivo una expPostfijo de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; }
            | OP_INC expUnaria                   {printf("Se derivo por ++ expUnaria\n");} 
            | OP_DEC expUnaria                   {printf("Se derivo por -- expUnaria\n");} 
+           | expUnaria OP_INC                   {printf("Se derivo por expUnaria ++\n");} 
+           | expUnaria OP_DEC                   {printf("Se derivo por expUnaria --\n");} 
            | operUnario expUnaria               {printf("Se derivo por operUnario expUnaria\n");} 
            | OP_SIZEOF '(' TIPO_DE_DATO ')'     {printf("Se derivo por sizeof ( TIPO_DE_DATO )\n");}
 ;           
@@ -314,22 +332,22 @@ operUnario:   '&'       {printf("Se derivo por operUnario con &\n");}
             | error     {printf("\t ERROR: operador unario incorrecto\n"); flag_error = 1;}
 ;
 
-expPostfijo:   expPrimaria                          {printf("Se derivo por expPrimaria\n");} 
+expPostfijo:   expPrimaria                          {printf("\nSe derivo una expPrimaria de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
              | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");}
 ;
 
-expPrimaria:   IDENTIFICADOR       {printf("Se derivo el identificador: %s\n", $<strval>1);}
-             | constante           {printf("Se derivo una constante\n");} 
-             | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);    sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char*";} 
-             | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");} 
+expPrimaria:   IDENTIFICADOR       {aux=getsym($<strval>1,TYP_VAR); if (aux) $<tipoExpresion>$ = aux->tipo; else printf("\n\tERROR SEMANTICO: No existe la variable %s\n",$<strval>1);}
+             | constante           {printf("\nSe derivo una constante de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
+             | LITERAL_CADENA      {$<tipoExpresion>$="char*"; printf("Se derivo el literal cadena: %s\n", $<strval>1);    sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char*";} 
+             | '(' expresion ')'   {$<tipoExpresion>$=$<tipoExpresion>2; printf("Se derivo por ( expresion ) en expPrimaria\n");} 
 ;
 
-constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1);     sprintf(valorConstante,"%d",$<ival>1);   tipoConstante = "int";}   
-            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1);       sprintf(valorConstante,"%f",$<dval>1);   tipoConstante = "float";}     
-            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char";} 
+constante:    ENTERO               {$<tipoExpresion>$="int";       printf("Se derivo la constante entera: %d\n",$<ival>1);     sprintf(valorConstante,"%d",$<ival>1);   tipoConstante = "int";}   
+            | NUM                  {$<tipoExpresion>$="double";    printf("Se derivo la constante real: %f\n",$<dval>1);       sprintf(valorConstante,"%f",$<dval>1);   tipoConstante = "float";}     
+            | CONST_CARACTER       {$<tipoExpresion>$="char";       printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char";} 
 ;
 
-invocacionDeFuncion: IDENTIFICADOR '(' listaArgumentos ')' {invocacion($<strval>1);} 
+invocacionDeFuncion: IDENTIFICADOR '(' listaArgumentos ')' {if(invocacion($<strval>1)){aux=getsym($<strval>1,TYP_FNCT); $<tipoExpresion>$=aux->tipo;};} 
 ;
 
 listaArgumentos:   argumento                          {printf("Se derivo por argumento en la lista de argumentos\n");} 

@@ -170,6 +170,8 @@ void agregarArgumentoAuxiliar(char* tipoArgumento){
     }
 }
 
+// verificacion de los parametros al invocar una funcion 
+
 int invocacionCorrecta(struct symrec *funcionInvocada){
   // listaAuxArgumentos
   // listaAuxParametros
@@ -212,29 +214,46 @@ void chequeoArgumento(char* id){
 }
 
 
-void invocacion(char* id){
+int invocacion(char* id){
+
+    int estadoChequeo = 1;
 
     if(!errorEnArgumento) {
         aux=getsym(id,TYP_FNCT); 
-        if (aux == 0)
-          printf("\tERROR semantico: NO EXISTE LA FUNCION %s \n\n",id);
-        else if(aux && !invocacionCorrecta(aux)) 
-          printf("\tERROR semantico: ERROR DE INVOCACION DE FUNCION %s \n\n",id);
+        if (aux == 0){
+            printf("\tERROR semantico: NO EXISTE LA FUNCION %s \n\n",id);
+            estadoChequeo = 0;
+        }
+        else if(aux && !invocacionCorrecta(aux)){
+            printf("\tERROR semantico: ERROR DE INVOCACION DE FUNCION %s \n\n",id);
+            estadoChequeo = 0;
+        }
         else
-          printf("Invocacion correcta de la funcion %s\n",id);
+            printf("Invocacion correcta de la funcion %s\n",id);
+          
     }
     
     errorEnArgumento = 0;
     listaAuxArgumentos = NULL; 
 
+    return estadoChequeo;
 } 
 
+// verificacion de tipos en una operacion binaria de asignacion
 
-/* void mostrarListaVar(){
+void verificacionDeTiposCorrecta(char* tipo1,char* tipo2){
+    if(strcmp(tipo1,tipo2)==0) 
+        printf("Se puede realizar la Operacion Binaria porque son del MISMO tipo.\n");
+    else
+        printf("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n");
+}
+
+/* 
+void mostrarListaVar(){
 
 }
 
 void mostrarListaFunc(){
 
 }
- */
+  */

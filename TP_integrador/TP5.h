@@ -38,8 +38,8 @@ typedef struct symrec {
   struct symrec *next; //Puntero al siguiente nodo de la lista
 } symrec;
 
-//Declaración de la variable sym_table que apunta a la TS
 //Se utiliza para exponer variables pertenecientes a un archivo a uno o varios archivos adicionales. 
+//Declaración de la variable sym_table que apunta a la TS
 
 extern symrec *sym_table;
 

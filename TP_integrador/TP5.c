@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
 symrec *aux;
 symrec *aux2;
@@ -83,7 +84,6 @@ void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
     
 };
 
-// Definicion de la funcion para agregar Funciones a la TS
 void recorrerParametrosAuxiliar(struct param *listaAuxParametros){
     if(listaAuxParametros==NULL)
         printf("\tSin parametros\n\n");
@@ -100,6 +100,8 @@ void recorrerParametrosAuxiliar(struct param *listaAuxParametros){
         printf("\tTotal: %d\n",totalAcumulado);
     }    
 }
+
+// Definicion de la funcion para agregar Funciones a la TS
 
 void declaracionDeFuncion(char * id, char* tipo, struct param* parametros){
 
@@ -248,12 +250,50 @@ void verificacionDeTiposCorrecta(char* tipo1,char* tipo2){
         printf("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n");
 }
 
-/* 
-void mostrarListaVar(){
 
-}
+void mostrarListaVar(){
+    symrec * auxTabla = sym_table;
+    int contador = 1;
+    printf("\t----------------------Variables declaradas----------------------\n\n");
+    if(auxTabla == NULL)
+        printf("\t No se encontraron variables\n");
+    else
+        while(auxTabla != NULL){
+            if(auxTabla->type == TYP_VAR){
+                printf("\t%d) %s %s ",contador,auxTabla->tipo,auxTabla->name);
+                if(auxTabla->value.valor == "")
+                    printf("sin valor\n");
+                else
+                    printf("con valor: %s\n",auxTabla->value.valor);
+                contador++;
+            }
+            auxTabla = auxTabla->next;
+        }
+    }
 
 void mostrarListaFunc(){
+    symrec * auxTabla = sym_table;
+    int contador = 1;
+    printf("\t----------------------Funciones declaradas----------------------\n\n");
+    if(auxTabla == NULL)
+        printf("\t No se encontraron funciones.");
+    else
+        while(auxTabla != NULL){
+            if(auxTabla->type == TYP_FNCT){
+                printf("\t%d) %s %s\n",contador,auxTabla->tipo,auxTabla->name);
+                recorrerParametrosAuxiliar(auxTabla->value.fnctptr.listaParametros);
+                contador++;
+            }
+            auxTabla=auxTabla->next;
+        }
+        printf("\n");
+    }
 
+void generarReporte(){
+    printf("A continuacion hacemos el reporte: \n");
+    system("PAUSE");
+    system("CLS");
+    printf("\n\n\t******************REPORTE DE COMPILACION******************\n\n");
+    mostrarListaVar();
+    mostrarListaFunc();
 }
-  */

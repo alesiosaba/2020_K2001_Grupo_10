@@ -25,7 +25,7 @@ CARACTER_DE_PUNTUACION (;|,|\(|\)|\{|\}|:|\.\.\.)
 OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|\+=|-=|\*=|\/=|%=|&=|^=|\|=|>>=|<<=|^|\||&&|\|\||\?:)
 
 
-%% 
+%%  
     /*Constante Entera Decimal*/        
 [1-9]{DIGITO_DECIMAL}*      {yylval.ival = atoi(yytext); return ENTERO;}
     /*Constante Entera Octal*/

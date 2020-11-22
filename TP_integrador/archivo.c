@@ -1,3 +1,4 @@
-char suma();
-int x;
-x = suma();
+if(1){}
+if)1){}
+if(1({}
+if(void){}

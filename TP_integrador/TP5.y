@@ -127,19 +127,19 @@ input:    /* vacio */
 
 line:   '\n'
         | expresion         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA EXPRESION\n\n"); else printf("\n^^^\tEXPRESION INCORRECTA\n\n"); flag_error = 0;}           
-        | sentencia         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\n^^^\tSENTENCIA INCORRECTA\n\n"); flag_error = 0;}           
+        | sentencia         {if(!flag_error) printf("\n^^^\tSE DETECTO UNA SENTENCIA %s\n\n",tipoSentencia); else printf("\n^^^\tSENTENCIA INCORRECTA %s\n\n",tipoSentencia); flag_error = 0;}           
         | declaracion       {if(!flag_error) printf("\n^^^\tSE DETECTO UNA DECLARACION\n\n"); else printf("\n^^^\tDECLARACION INCORRECTA\n\n"); flag_error = 0;}          
 ;
 
 /////////////////////////////////  GRAMATICA DE SENTENCIAS  /////////////////////////////////
 
 
-sentencia:  sentenciaExpresion      {printf("Se derivo por sentenciaExpresion\n"); tipoSentencia = "expresion";}
-          | sentenciaCompuesta      {printf("Se derivo por sentenciaCompuesta\n"); tipoSentencia = "compuesta";}
-          | sentenciaDeSeleccion    {printf("Se derivo por sentenciaDeSeleccion\n"); tipoSentencia = "de seleccion";} 
-          | sentenciaDeIteracion    {printf("Se derivo por sentenciaDeIteracion\n"); tipoSentencia = "de iteracion";}
-          | sentenciaEtiquetada     {printf("Se derivo por sentenciaEtiquetada\n"); tipoSentencia = "etiquetada";}
-          | sentenciaDeSalto        {printf("Se derivo por sentenciaDeSalto\n"); tipoSentencia = "de salto";}  
+sentencia:  sentenciaExpresion      {tipoSentencia = "DE EXPRESION";}
+          | sentenciaCompuesta      {tipoSentencia = "COMPUESTA";}
+          | sentenciaDeSeleccion    {tipoSentencia = "DE SELECCION";} 
+          | sentenciaDeIteracion    {tipoSentencia = "DE ITERACION";}
+          | sentenciaEtiquetada     {tipoSentencia = "ETIQUETADA";}
+          | sentenciaDeSalto        {tipoSentencia = "DE SALTO";}  
 ;
 
 sentenciaExpresion: /* vacio */ ';'         {printf("Se detecto una sentencia vacia\n");}
@@ -163,35 +163,46 @@ listaDeSentencias:    sentencia
                     | listaDeSentencias sentencia
 ;
 
-sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                      {printf("Se detecto una sentencia if\n");}  
+sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                      {printf("Se detecto una sentencia if\n");}
                       | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia   {printf("Se detecto una sentencia if con else\n");}
+                      | TKN_IF error expresion ')' sentencia                    {printf("ERROR SINTACTICO: falta '(' en sentencia IF"); flag_error=1;}
+                      | TKN_IF '(' expresion error sentencia                    {printf("ERROR SINTACTICO: falta ')' en sentencia IF"); flag_error=1;}
+                      | TKN_IF '(' error ')' sentencia                          {printf("ERROR SINTACTICO: expresion incorrecta en sentencia IF"); flag_error=1;}
                       | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia              {printf("Se detecto una sentencia switch\n");}
 ;
 
-sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                           {printf("Se detecto una sentencia while\n");}          
-                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                {printf("Se detecto una sentencia do while\n");}  
-                      | TKN_FOR '(' ';' ';' ')' sentencia                               {printf("Se detecto una sentencia for\n");}    
-                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                     {printf("Se detecto una sentencia for\n");}  
-                      | TKN_FOR '('  ';' expresion ';' ')' sentencia                    {printf("Se detecto una sentencia for\n");} 
-                      | TKN_FOR '('  ';' ';' expresion ')' sentencia                    {printf("Se detecto una sentencia for\n");}  
-                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia           {printf("Se detecto una sentencia for\n");}  
-                      | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia          {printf("Se detecto una sentencia for\n");}  
-                      | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia          {printf("Se detecto una sentencia for\n");}  
-                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia {printf("Se detecto una sentencia for\n");}
+sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                                   {printf("Se detecto una sentencia while\n");}   
+                      | TKN_WHILE '(' error ')' sentencia                                       {printf("ERROR SINTACTICO: no tiene expresion en condicion while\n"); flag_error=1; } 
+                      | TKN_WHILE error expresion ')' sentencia                                 {printf("ERROR SINTACTICO: falta '(' en while\n"); flag_error=1;}
+                      | TKN_WHILE '(' expresion error sentencia                                 {printf("ERROR SINTACTICO: falta ') en' while\n"); flag_error=1;}
+                      | TKN_WHILE '(' expresion ')' error                                       {printf("ERROR SINTACTICO: El while no está seguido por una sentencia\n"); flag_error=1;}
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                        {printf("Se detecto una sentencia do while\n");} 
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' error                      {printf("ERROR SINTACTICO: No posee ';' luego del while\n"); flag_error=1;}
+                      | TKN_FOR '(' ';' ';' ')' sentencia                                       {printf("Se detecto una sentencia for\n");}    
+                      | TKN_FOR '(' expresion ';' ';' ')' sentencia                             {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '('  ';' expresion ';' ')' sentencia                            {printf("Se detecto una sentencia for\n");} 
+                      | TKN_FOR '('  ';' ';' expresion ')' sentencia                            {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';' expresion ';' ')' sentencia                   {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia                  {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia                  {printf("Se detecto una sentencia for\n");}  
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia         {printf("Se detecto una sentencia for\n");}
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' error             {printf("ERROR SINTACTICO: El FOR no esta seguido por una sentencia\n");flag_error=1;}
+                      | TKN_FOR error expresion ';' expresion ';' expresion ')' sentencia       {printf("ERROR SINTACTICO: El FOR no tiene '(' de apertura\n"); flag_error=1;}
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion error sentencia       {printf("ERROR SINTACTICO: El FOR no tiene ')' de cierre\n");   flag_error=1;}
 ;
 
 sentenciaEtiquetada:    TKN_CASE constante ':' sentencia            {printf("Se detecto una sentencia case de switch\n");}   
                       | TKN_DEFAULT ':' sentencia                   {printf("Se detecto una sentencia caso default de switch\n");}     
 ; 
 
-sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia break\n");}
+sentenciaDeSalto:   TKN_BREAK ';'             {printf("Se detecto una sentencia break\n");}
                   | TKN_RETURN ';'            {printf("Se detecto una sentencia return sin expresion\n");}  
                   | TKN_RETURN expresion ';'  {printf("Se detecto una sentencia return con valor a retornar\n");}
 ;
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion:      TIPO_DE_DATO          {tipoDeclaracion = $<strval>1;} dec 
+declaracion:      TIPO_DE_DATO          {tipoDeclaracion = $<strval>1;} dec
                 | TIPO_DE_DATO '*'      {tipoDeclaracion = strcat($<strval>1,"*");} dec                 
                 | TKN_VOID              {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
                 | struct                {printf("Se derivo por struct\n");}
@@ -208,7 +219,7 @@ camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';' camposStruct   {printf("Se agre
 ;
 
 dec:      declaracionDefinicionFuncion          
-        | declaracionVariables ';'            {printf("Declaracion de variables\n");}
+        | declaracionVariables ';'                      {printf("Declaracion de variables\n");}
 ;
 
 declaracionVariables:   listaIdentificadores {printf("Comienza declaracion de variables del tipo %s\n",tipoDeclaracion);}
@@ -329,7 +340,6 @@ expUnaria: expPostfijo                          {printf("\nSe derivo una expPost
 
 operUnario:   '&'       {printf("Se derivo por operUnario con &\n");}  
             | '*'       {printf("Se derivo por operUnario con *\n");}
-            | error     {printf("\t ERROR: operador unario incorrecto\n"); flag_error = 1;}
 ;
 
 expPostfijo:   expPrimaria                          {printf("\nSe derivo una expPrimaria de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
@@ -372,4 +382,5 @@ int main(){
         yyin = fopen("archivo.c","r");
         printf("\n");
         yyparse();
+        // generarReporte();
 }

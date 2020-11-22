@@ -15,7 +15,9 @@ int contador=0;
 char* tipoSentencia = NULL;
 char* tipoDeclaracion = NULL;
 char* identificador = NULL;
-char valorConstante[100];
+char* valorConstante;
+char* tipoConstante;
+
 
 // Llamada por yyparse ante un error 
 void yyerror (char const *s) {          //Con yyerror se detecta el error sintáctico 
@@ -199,54 +201,55 @@ listaIdentificadores:   declaIdentificador                          {printf("Der
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else {putsym(strdup($<strval>1),TYP_VAR); printf("\tSe declara la variable %s\n",$<strval>1);} } 
-                    | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
-                    | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1); if (aux) printf("\n\tDOBLE DECLARACION DE VARIABLES\n"); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
+declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else {putsym(strdup($<strval>1),TYP_VAR); printf("\n\tSe declara la variable %s\n",$<strval>1);} } 
+                    | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
+                    | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
                     | error                             {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;} }
                     | error '=' constante               {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;} }
                     | IDENTIFICADOR '=' error           {if(!flag_error){printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;} }
 ;
 
-declaracionDefinicionFuncion:     IDENTIFICADOR {identificador = $<strval>1;} parametrosCuerpoFuncion {printf("Declaracion / Definicion de una funcion\n");}
+declaracionDefinicionFuncion:     IDENTIFICADOR {identificador = $<strval>1; listaAuxParametros = NULL;} parametrosCuerpoFuncion  
                                 | error parametrosCuerpoFuncion {printf("\t ERROR: falta identificador en declaracion/definicion de funcion\n"); flag_error = 1;}
 ;
 
-parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {printf("Define la funcion %s de tipo %s\n",identificador, tipoDeclaracion);}
-                            | '(' listaParametroConId ')' ';'                   {printf("Declara la funcion %s (prototipo) de tipo %s\n",identificador, tipoDeclaracion);}
-                            | '(' listaParametroSinId ')' ';'                   {printf("Declara la funcion %s (prototipo) de tipo %s\n",identificador, tipoDeclaracion);}
-                            | '(' /* vacio */ ')' sentenciaCompuesta            {printf("Define la funcion %s sin parametros, de tipo %s\n",identificador, tipoDeclaracion);}
-                            | '(' /* vacio */ ')' ';'                           {printf("Declara la funcion %s (prototipo) sin parametros, de tipo %s\n",identificador, tipoDeclaracion);}
+parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' listaParametroSinId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' /* vacio */ ')' sentenciaCompuesta            {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' /* vacio */ ')' ';'                           {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' listaParametroConId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
 ;
 
 listaParametroConId:      parametroConId
-                        | parametroConId ',' listaParametroConId
+                        | parametroConId ',' listaParametroConId 
 ;
 
 listaParametroSinId:      parametroSinId
                         | parametroSinId ',' listaParametroSinId
 ;
 
-parametroConId:   TIPO_DE_DATO IDENTIFICADOR       {printf("Se agrega el parametro %s de tipo %s \n",$<strval>2,$<strval>1);} 
-                | TIPO_DE_DATO '*' IDENTIFICADOR   {printf("Se agrega el parametro %s de tipo %s* \n",$<strval>3,$<strval>1);} 
+parametroConId:   TIPO_DE_DATO IDENTIFICADOR       { agregarParametroAuxiliar($<strval>1);} 
+                | TIPO_DE_DATO '*' IDENTIFICADOR   { agregarParametroAuxiliar(strcat($<strval>1,"*"));} 
                 | error IDENTIFICADOR              {printf("\t ERROR: falta tipo de dato en parametroConId \n"); flag_error = 1;}
                 | error '*' IDENTIFICADOR          {printf("\t ERROR: falta tipo de dato puntero en parametroConId \n"); flag_error = 1;}
                 | TIPO_DE_DATO error               {printf("\t ERROR: falta identificador en parametroConId \n"); flag_error = 1;}
                 | TIPO_DE_DATO '*' error           {printf("\t ERROR: falta identificador del puntero en parametroConId \n"); flag_error = 1;}
 ;
 
-parametroSinId:   TIPO_DE_DATO         {printf("Se agrega un parametro de tipo %s \n",$<strval>1);} 
-                | TIPO_DE_DATO '*'     {printf("Se agrega un parametro de tipo %s* \n",$<strval>1);} 
+parametroSinId:   TIPO_DE_DATO         { agregarParametroAuxiliar($<strval>1);} 
+                | TIPO_DE_DATO '*'     { agregarParametroAuxiliar(strcat($<strval>1,"*"));} 
                 | error                {printf("\t ERROR: falta tipo de dato en parametroSinId \n"); flag_error = 1;}
                 | error '*'            {printf("\t ERROR: falta tipo de dato del puntero en parametroSinId \n"); flag_error = 1;}
 ;
 
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
 
-expresion: expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
+expresion:      expAsignacion {printf("Se derivo por expAsignacion\nSe derivo por expresion\n");}
 ;
 
-expAsignacion:   expCondicional                           {printf("Se derivo por expCondicional\n");}
-               | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
+expAsignacion:    expCondicional                           {printf("Se derivo por expCondicional\n");}
+                | invocacionDeFuncion                      {printf("Se derivo por invocacionDeFuncion\n");}
+                | expUnaria operAsignacion expAsignacion   {printf("Se agregan expAsignacion\n");} 
 ;
 
 operAsignacion:   '='                       {printf("Se utiliza el =\n");}
@@ -271,7 +274,7 @@ expAnd: expIgualdad                     {printf("Se derivo por expIgualdad\n");}
 ;
 
 expIgualdad: expRelacional                                {printf("Se derivo por expRelacional\n");} 
-             | expIgualdad OP_IGUALDAD expRelacional      {printf("Se agrega expIgualdad con ==\n");}  
+             | expIgualdad OP_IGUALDAD expRelacional      {printf("Se agrega expIgualdad con ==\n");} 
              | expIgualdad OP_DESIGUALDAD expRelacional   {printf("Se agrega expIgualdad con !=\n");}  
 ;
 
@@ -310,26 +313,30 @@ operUnario:   '&'       {printf("Se derivo por operUnario con &\n");}
 ;
 
 expPostfijo:   expPrimaria                          {printf("Se derivo por expPrimaria\n");} 
-             | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");} 
-             | expPostfijo '(' listaArgumentos ')'  {printf("Se agrega ( listaArgumentos ) a expPostfijo\n");} 
-             | expPostfijo '(' ')'                  {printf("Se agrega () a expPostfijo\n");}
+             | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");}
 ;
 
-listaArgumentos:   expAsignacion                          {printf("Se derivo por expAsignacion en la lista de parametros\n");} 
-                 | expAsignacion ',' listaArgumentos      {printf("Se agrega argumento a la lista de parametros\n");}
-;
-
-expPrimaria:   IDENTIFICADOR         {printf("Se derivo el identificador: %s\n", $<strval>1);}
+expPrimaria:   IDENTIFICADOR       {printf("Se derivo el identificador: %s\n", $<strval>1);}
              | constante           {printf("Se derivo una constante\n");} 
              | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
              | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");} 
 ;
 
-constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1);}   
-            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1); sprintf(valorConstante,"%f",$<dval>1);}     
-            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1);} 
+constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1); tipoConstante = "int";}   
+            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1); sprintf(valorConstante,"%f",$<dval>1);   tipoConstante = "float";}     
+            | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char";} 
 ;
 
+invocacionDeFuncion: IDENTIFICADOR '(' listaArgumentos ')' {invocacion($<strval>1);} 
+;
+
+listaArgumentos:   argumento                          {printf("Se derivo por argumento en la lista de argumentos\n");} 
+                 | argumento ',' listaArgumentos      {printf("Se agrega argumento a la lista de argumentos\n");}
+;
+
+argumento:  IDENTIFICADOR       {chequeoArgumento($<strval>1);}
+          | constante           {agregarArgumentoAuxiliar(tipoConstante);}
+          | LITERAL_CADENA      {agregarArgumentoAuxiliar("char*");}
 %%
 
 // Define variable puntero que apunta a la tabla de símbolos (TS).
@@ -345,4 +352,3 @@ int main(){
         printf("\n");
         yyparse();
 }
-

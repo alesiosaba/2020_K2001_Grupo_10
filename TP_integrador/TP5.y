@@ -15,7 +15,7 @@ int contador=0;
 char* tipoSentencia = NULL;
 char* tipoDeclaracion = NULL;
 char* identificador = NULL;
-char* valorConstante;
+char valorConstante[100];
 char* tipoConstante;
 
 
@@ -175,9 +175,10 @@ sentenciaDeSalto: TKN_BREAK ';'               {printf("Se detecto una sentencia 
 
 ////////////////////////////////////////////////// GRAMATICA DE DECLARACIONES ///////////////////////////////////////////////////////////
 
-declaracion:      TIPO_DE_DATO  {tipoDeclaracion = $<strval>1;} dec                 
-                | TKN_VOID      {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
-                | struct        {printf("Se derivo por struct\n");}
+declaracion:      TIPO_DE_DATO          {tipoDeclaracion = $<strval>1;} dec 
+                | TIPO_DE_DATO '*'      {tipoDeclaracion = strcat($<strval>1,"*");} dec                 
+                | TKN_VOID              {tipoDeclaracion = "void";} declaracionDefinicionFuncion  
+                | struct                {printf("Se derivo por struct\n");}
 ;
 
 struct:    TKN_STRUCT IDENTIFICADOR '{' camposStruct '}' ';'                  {printf("Se declara el struct %s\n", $<strval>2);}
@@ -201,8 +202,9 @@ listaIdentificadores:   declaIdentificador                          {printf("Der
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else {putsym(strdup($<strval>1),TYP_VAR); printf("\n\tSe declara la variable %s\n",$<strval>1);} } 
+declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariableSinInicializar($<strval>1,tipoDeclaracion);} 
                     | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
+                    | IDENTIFICADOR '=' LITERAL_CADENA  {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante); }
                     | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
                     | error                             {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;} }
                     | error '=' constante               {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;} }
@@ -318,12 +320,12 @@ expPostfijo:   expPrimaria                          {printf("Se derivo por expPr
 
 expPrimaria:   IDENTIFICADOR       {printf("Se derivo el identificador: %s\n", $<strval>1);}
              | constante           {printf("Se derivo una constante\n");} 
-             | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);} 
+             | LITERAL_CADENA      {printf("Se derivo el literal cadena: %s\n", $<strval>1);    sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char*";} 
              | '(' expresion ')'   {printf("Se derivo por ( expresion ) en expPrimaria\n");} 
 ;
 
-constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1); sprintf(valorConstante,"%d",$<ival>1); tipoConstante = "int";}   
-            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1); sprintf(valorConstante,"%f",$<dval>1);   tipoConstante = "float";}     
+constante:    ENTERO               {printf("Se derivo la constante entera: %d\n",$<ival>1);     sprintf(valorConstante,"%d",$<ival>1);   tipoConstante = "int";}   
+            | NUM                  {printf("Se derivo la constante real: %f\n",$<dval>1);       sprintf(valorConstante,"%f",$<dval>1);   tipoConstante = "float";}     
             | CONST_CARACTER       {printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char";} 
 ;
 
@@ -334,9 +336,10 @@ listaArgumentos:   argumento                          {printf("Se derivo por arg
                  | argumento ',' listaArgumentos      {printf("Se agrega argumento a la lista de argumentos\n");}
 ;
 
-argumento:  IDENTIFICADOR       {chequeoArgumento($<strval>1);}
-          | constante           {agregarArgumentoAuxiliar(tipoConstante);}
-          | LITERAL_CADENA      {agregarArgumentoAuxiliar("char*");}
+argumento:        /* vacio */         {printf("Se derivo por invocacion sin arg");}
+                | IDENTIFICADOR       {chequeoArgumento($<strval>1);}
+                | constante           {agregarArgumentoAuxiliar(tipoConstante);}
+                | LITERAL_CADENA      {agregarArgumentoAuxiliar("char*");}
 %%
 
 // Define variable puntero que apunta a la tabla de símbolos (TS).

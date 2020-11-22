@@ -29,7 +29,7 @@ typedef struct arg {
 typedef struct symrec {
   char *name;
   int type;         //Tenemos dos tipos: Variable (TYP_VAR) o Función (TYP_FNCT)
-  char* tipo;       // Se guarda el tipo ya sea funcion o variable  
+  char *tipo;       // Se guarda el tipo ya sea funcion o variable  
   union
   {
     char* valor;               //Si es una variable, se guarda su valor  

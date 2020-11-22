@@ -37,11 +37,18 @@ symrec *getsym (char const *sym_name, int sym_type)
 // Definicion de las funciones para agregar variables a la TS
 
 void declararVariable(char* nombre,char* tipo,char* valor){
-
     aux = putsym(strdup(nombre),TYP_VAR);
     aux->tipo = tipo;
     aux->value.valor = valor;
     printf("\n\tSe declara la variable %s de tipo %s con valor inicial %s\n\n",aux->name, aux->tipo, aux->value.valor);
+}
+
+
+void declararVariableSinInicializar(char* nombre,char* tipo){
+    aux = putsym(strdup(nombre),TYP_VAR);
+    aux->tipo = tipo;
+    aux->value.valor = "";
+    printf("\n\tSe declara la variable %s de tipo %s sin valor inicial\n\n",aux->name, aux->tipo);
 }
 
 int sonDelMismoTipo(char* tipo, char* tipo2){
@@ -52,6 +59,8 @@ int sonDelMismoTipo(char* tipo, char* tipo2){
     else 
         return 0;
 };
+
+// Se utiliza cuando declaramos una variable inicializando su valor con el de otra variable
 
 void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
     aux2 = getsym(nombre2,TYP_VAR);
@@ -77,15 +86,15 @@ void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
 // Definicion de la funcion para agregar Funciones a la TS
 void recorrerParametrosAuxiliar(struct param *listaAuxParametros){
     if(listaAuxParametros==NULL)
-        printf("sin parametros\n\n");
+        printf("\tSin parametros\n\n");
     else{
-        printf(".Sus parametros son: ");
+        printf("\tSus parametros son: ");
         int totalAcumulado = 0;
         struct param* aux; 
         aux = listaAuxParametros;
         while(aux!=NULL){
             totalAcumulado ++;
-            printf("%s ,",aux->tipo);
+            printf("%s ",aux->tipo);
             aux = aux->next;
         }
         printf("\tTotal: %d\n",totalAcumulado);
@@ -97,7 +106,7 @@ void declaracionDeFuncion(char * id, char* tipo, struct param* parametros){
         aux = putsym(strdup(id),TYP_FNCT);
         aux->tipo = tipo;
         aux->value.fnctptr.listaParametros = parametros;
-        printf("\n\tSe declara la funcion %s de tipo %s ",aux->name, aux->tipo);
+        printf("\n\tSe declara la funcion %s de tipo %s.\n",aux->name, aux->tipo);
         // informar nombre y tipo de cada parametro de la funcion
         recorrerParametrosAuxiliar(aux->value.fnctptr.listaParametros);
 };
@@ -171,11 +180,8 @@ int invocacionCorrecta(struct symrec *funcionInvocada){
   auxArgumentos = listaAuxArgumentos;
   auxParametros = funcionInvocada->value.fnctptr.listaParametros;
 
-  printf("Comparacion: \n");
-
   while(auxArgumentos != NULL && auxParametros != NULL)
   {
-    printf("argumento: %s , parametro: %s\n",auxArgumentos->tipo,auxParametros->tipo);
     if(strcmp(auxArgumentos->tipo,auxParametros->tipo)!=0){
       printf("\nNo coinciden los tipos de argumentos de en la invocacion\n");
       return 0;
@@ -197,15 +203,12 @@ int invocacionCorrecta(struct symrec *funcionInvocada){
 
 void chequeoArgumento(char* id){
     symrec* auxArg=getsym(id,TYP_VAR); 
-
     if(auxArg == 0){
         printf("\n\tERROR semantico: NO EXISTE LA VARIABLE %s DEL PARAMETRO \n",id);
         errorEnArgumento = 1;
     }
     else
-    {
         agregarArgumentoAuxiliar(auxArg->tipo);
-    }
 }
 
 
@@ -218,10 +221,20 @@ void invocacion(char* id){
         else if(aux && !invocacionCorrecta(aux)) 
           printf("\tERROR semantico: ERROR DE INVOCACION DE FUNCION %s \n\n",id);
         else
-          printf("Se asigno el valor de la funcion %s invocada.",id);
+          printf("Invocacion correcta de la funcion %s\n",id);
     }
     
     errorEnArgumento = 0;
     listaAuxArgumentos = NULL; 
 
 } 
+
+
+/* void mostrarListaVar(){
+
+}
+
+void mostrarListaFunc(){
+
+}
+ */

@@ -1,2 +1,3 @@
-int $$$a = 3;
-int b = c;
+int fun(char*);
+char* c = "hola"; 
+fun(c);

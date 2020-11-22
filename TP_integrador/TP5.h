@@ -32,7 +32,7 @@ typedef struct symrec {
   char *tipo;       // Se guarda el tipo ya sea funcion o variable  
   union
   {
-    char* valor;               //Si es una variable, se guarda su valor  
+    char valor[100];            //Si es una variable, se guarda su valor  
     struct func_t fnctptr;     //Si es una función, se almacena un puntero a una función
   } value;
   struct symrec *next; //Puntero al siguiente nodo de la lista
@@ -51,4 +51,7 @@ symrec *putsym (char const *, int);
 
 symrec *getsym (char const *, int);
 
+void reporteCaracNoReconocidos();
+
 #endif
+

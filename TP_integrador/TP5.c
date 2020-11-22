@@ -17,7 +17,7 @@ symrec *putsym (char const *sym_name, int sym_type)
   ptr->name = (char *) malloc (strlen (sym_name) + 1);
   strcpy (ptr->name,sym_name);
   ptr->type = sym_type;
-  ptr->value.valor = 0;
+  //ptr->value.valor;
   ptr->next = (struct symrec *)sym_table;
   sym_table = ptr;
   return ptr;
@@ -36,11 +36,13 @@ symrec *getsym (char const *sym_name, int sym_type)
 
 
 // Definicion de las funciones para agregar variables a la TS
+void mostrarListaVar();
 
 void declararVariable(char* nombre,char* tipo,char* valor){
+    
     aux = putsym(strdup(nombre),TYP_VAR);
     aux->tipo = tipo;
-    aux->value.valor = valor;
+    strcpy(aux->value.valor,valor);
     printf("\n\tSe declara la variable %s de tipo %s con valor inicial %s\n\n",aux->name, aux->tipo, aux->value.valor);
 }
 
@@ -48,7 +50,7 @@ void declararVariable(char* nombre,char* tipo,char* valor){
 void declararVariableSinInicializar(char* nombre,char* tipo){
     aux = putsym(strdup(nombre),TYP_VAR);
     aux->tipo = tipo;
-    aux->value.valor = "";
+    strcpy(aux->value.valor,"");
     printf("\n\tSe declara la variable %s de tipo %s sin valor inicial\n\n",aux->name, aux->tipo);
 }
 
@@ -69,9 +71,8 @@ void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
     if(aux2 && sonDelMismoTipo(tipo, aux2->tipo)){
         // asignacion
         aux = putsym(strdup(nombre1),TYP_VAR);
-        aux->value.valor = aux2->value.valor;
+        strcpy(aux->value.valor,aux2->value.valor);
         aux->tipo = tipo;  
-
         printf("\n\tSe declara la variable %s de tipo %s con valor inicial %s\n", aux->name, aux->tipo, aux->value.valor);
     }
     else if(aux2 && !sonDelMismoTipo(tipo, aux2->tipo))
@@ -97,7 +98,7 @@ void recorrerParametrosAuxiliar(struct param *listaAuxParametros){
             printf("%s ",aux->tipo);
             aux = aux->next;
         }
-        printf("\tTotal: %d\n",totalAcumulado);
+        printf("\tTotal: %d\n\n",totalAcumulado);
     }    
 }
 
@@ -250,18 +251,24 @@ void verificacionDeTiposCorrecta(char* tipo1,char* tipo2){
         printf("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n");
 }
 
+// agregar error sintactico 
+
+
+
+// agregar error semantico 
+
 
 void mostrarListaVar(){
     symrec * auxTabla = sym_table;
     int contador = 1;
-    printf("\t----------------------Variables declaradas----------------------\n\n");
+    printf("\n\t----------------------Variables declaradas----------------------\n\n");
     if(auxTabla == NULL)
         printf("\t No se encontraron variables\n");
     else
         while(auxTabla != NULL){
             if(auxTabla->type == TYP_VAR){
                 printf("\t%d) %s %s ",contador,auxTabla->tipo,auxTabla->name);
-                if(auxTabla->value.valor == "")
+                if(strcmp(auxTabla->value.valor,"")==0)
                     printf("sin valor\n");
                 else
                     printf("con valor: %s\n",auxTabla->value.valor);
@@ -269,12 +276,13 @@ void mostrarListaVar(){
             }
             auxTabla = auxTabla->next;
         }
+        printf("\n");
     }
 
 void mostrarListaFunc(){
     symrec * auxTabla = sym_table;
     int contador = 1;
-    printf("\t----------------------Funciones declaradas----------------------\n\n");
+    printf("\n\t----------------------Funciones declaradas----------------------\n\n");
     if(auxTabla == NULL)
         printf("\t No se encontraron funciones.");
     else
@@ -289,11 +297,47 @@ void mostrarListaFunc(){
         printf("\n");
     }
 
+
 void generarReporte(){
     printf("A continuacion hacemos el reporte: \n");
     system("PAUSE");
     system("CLS");
     printf("\n\n\t******************REPORTE DE COMPILACION******************\n\n");
+    
     mostrarListaVar();
     mostrarListaFunc();
+    reporteCaracNoReconocidos();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* void mostrarTabla(){
+    symrec * auxTabla = sym_table;
+    int contador = 1;
+    printf("\n\t----------------------Tabla----------------------\n\n");
+    if(auxTabla == NULL)
+        printf("\t No se encontro nada.");
+    else
+        while(auxTabla != NULL){
+            printf("\t%d) %s %s ",contador,auxTabla->tipo,auxTabla->name);
+            if(auxTabla->type == TYP_FNCT){
+                recorrerParametrosAuxiliar(auxTabla->value.fnctptr.listaParametros);
+            }
+            else
+                printf("%s\n",auxTabla->value.valor);
+            contador++;
+            auxTabla=auxTabla->next;
+        }
+        printf("\n");
+    } */

@@ -7,6 +7,9 @@
 #include <stdlib.h> 
 #include <string.h>
 #include "TP5.tab.h"    // archivo generado por BISON
+#include "caracteresNoReconocidos.h"
+#include <windows.h>
+
 %}
 
 DIGITO_DECIMAL [0-9] 
@@ -27,100 +30,103 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 
 %%  
     /*Constante Entera Decimal*/        
-[1-9]{DIGITO_DECIMAL}*      {yylval.ival = atoi(yytext); return ENTERO;}
+[1-9]{DIGITO_DECIMAL}*      {cadenaErrorLexico = 0; yylval.ival = atoi(yytext); return ENTERO;}
     /*Constante Entera Octal*/
-0{DIGITO_OCTAL}*            {yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
+0{DIGITO_OCTAL}*            {cadenaErrorLexico = 0; yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
     /*Constante Entera Hexadecimal*/
-0[xX]{DIGITO_HEXADECIMAL}+  {yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
+0[xX]{DIGITO_HEXADECIMAL}+  {cadenaErrorLexico = 0; yylval.ival = strtol(yytext,NULL,0); return ENTERO;}
     /*Constante Real*/
-[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {yylval.dval = atof(yytext); return NUM;}
+[\+\-]?{DIGITO_DECIMAL}*\.{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+\.([eE][\+\-]?{DIGITO_DECIMAL}+)?{SUFIJO_REAL}?|[\+\-]?{DIGITO_DECIMAL}+([eE][\+\-]?{DIGITO_DECIMAL}+) {cadenaErrorLexico = 0; yylval.dval = atof(yytext); return NUM;}
     /*Constante Caracter*/
-'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {yylval.strval = strdup(yytext); return CONST_CARACTER;}
+'([^'\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*' {cadenaErrorLexico = 0; yylval.strval = strdup(yytext); return CONST_CARACTER;}
     /*Literal Cadena*/
-\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {yylval.strval = strdup(yytext); return LITERAL_CADENA;}    
+\"([^"\\]|{SECUENCIA_DE_ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXADECIMAL}{1,2})*\" {cadenaErrorLexico = 0; yylval.strval = strdup(yytext); return LITERAL_CADENA;}    
     /*Palabra Reservada*/
-{TIPO_DE_DATO}             {yylval.strval = strdup(yytext); return TIPO_DE_DATO;}
+{TIPO_DE_DATO}             {cadenaErrorLexico = 0; yylval.strval = strdup(yytext); return TIPO_DE_DATO;}
     /* Void */
-"void"          {return TKN_VOID;}
+"void"          {cadenaErrorLexico = 0; return TKN_VOID;}
 
     /*  Estructura de control */
-"switch"        {return TKN_SWITCH;}
-"case"          {return TKN_CASE;}
-"break"         {return TKN_BREAK;}
-"default"       {return TKN_DEFAULT;}
-"continue"      {return TKN_CONTINUE;}
-"do"            {return TKN_DO;}
-"while"         {return TKN_WHILE;}
-"if"            {return TKN_IF;}
-"else"          {return TKN_ELSE;}
-"for"           {return TKN_FOR;}
-"return"        {return TKN_RETURN;}
-"goto"          {return TKN_GOTO;}
+"switch"        {cadenaErrorLexico = 0; return TKN_SWITCH;}
+"case"          {cadenaErrorLexico = 0; return TKN_CASE;}
+"break"         {cadenaErrorLexico = 0; return TKN_BREAK;}
+"default"       {cadenaErrorLexico = 0; return TKN_DEFAULT;}
+"continue"      {cadenaErrorLexico = 0; return TKN_CONTINUE;}
+"do"            {cadenaErrorLexico = 0; return TKN_DO;}
+"while"         {cadenaErrorLexico = 0; return TKN_WHILE;}
+"if"            {cadenaErrorLexico = 0; return TKN_IF;}
+"else"          {cadenaErrorLexico = 0; return TKN_ELSE;}
+"for"           {cadenaErrorLexico = 0; return TKN_FOR;}
+"return"        {cadenaErrorLexico = 0; return TKN_RETURN;}
+"goto"          {cadenaErrorLexico = 0; return TKN_GOTO;}
 
 
 
-"volatile"      {return TKN_VOLATILE;}
-"const"         {return TKN_CONST;}
-"struct"        {return TKN_STRUCT;}
-"union"         {return TKN_UNION;}
-"enum"          {return TKN_ENUM;}
+"volatile"      {cadenaErrorLexico = 0; return TKN_VOLATILE;}
+"const"         {cadenaErrorLexico = 0; return TKN_CONST;}
+"struct"        {cadenaErrorLexico = 0; return TKN_STRUCT;}
+"union"         {cadenaErrorLexico = 0; return TKN_UNION;}
+"enum"          {cadenaErrorLexico = 0; return TKN_ENUM;}
 
     /*Operador*/
-"["         {return '[';}
-"]"         {return ']';}
-"."         {return '.';}
-"->"        {return OP_ACCESO_ATRIBUTO;}
-"sizeof"    {return OP_SIZEOF;}
-"++"        {return OP_INC;}
-"--"        {return OP_DEC;}
-"~"         {return '~';}
-"!"         {return '!';}
-"-"         {return '-';}
-"+"         {return '+';}
-"&"         {return '&';}
-"*"         {return '*';}
-"/"         {return '/';}
-"%"         {return OP_PORCENTAJE;}
-"<<"        {return OP_DESPLAZAMIENTO_IZQ;}      
-">>"        {return OP_DESPLAZAMIENTO_DER;}      
-"<"         {return '<';}
-">"         {return '>';}
-"<="        {return OP_MENOR_IGUAL;}
-">="        {return OP_MAYOR_IGUAL;}
-"="         {return '=';}
-"=="        {return OP_IGUALDAD;}
-"!="        {return OP_DESIGUALDAD;}
-"+="        {return OP_ASIG_SUMA;}
-"-="        {return OP_ASIG_RESTA;}
-"*="        {return OP_ASIG_MULTIPLICACION;}
-"/="        {return OP_ASIG_DIVISION;}
-"%="        {return OP_ASIG_RESTO;}
-"^="        {return OP_ASIG_POTENCIA;}             
-"^"         {return '^';}
-"|"         {return '|';}
-"||"        {return OP_OR;}
-"&&"        {return OP_AND;}
-"?"         {return '?';}
+"["         {cadenaErrorLexico = 0; return '[';}
+"]"         {cadenaErrorLexico = 0; return ']';}
+"."         {cadenaErrorLexico = 0; return '.';}
+"->"        {cadenaErrorLexico = 0; return OP_ACCESO_ATRIBUTO; }
+"sizeof"    {cadenaErrorLexico = 0; return OP_SIZEOF;}
+"++"        {cadenaErrorLexico = 0; return OP_INC;}
+"--"        {cadenaErrorLexico = 0; return OP_DEC;}
+"~"         {cadenaErrorLexico = 0; return '~';}
+"!"         {cadenaErrorLexico = 0; return '!';}
+"-"         {cadenaErrorLexico = 0; return '-';}
+"+"         {cadenaErrorLexico = 0; return '+';}
+"&"         {cadenaErrorLexico = 0; return '&';}
+"*"         {cadenaErrorLexico = 0; return '*';}
+"/"         {cadenaErrorLexico = 0; return '/';}
+"%"         {cadenaErrorLexico = 0; return OP_PORCENTAJE;}
+"<<"        {cadenaErrorLexico = 0; return OP_DESPLAZAMIENTO_IZQ;}      
+">>"        {cadenaErrorLexico = 0; return OP_DESPLAZAMIENTO_DER;}      
+"<"         {cadenaErrorLexico = 0; return '<';}
+">"         {cadenaErrorLexico = 0; return '>';}
+"<="        {cadenaErrorLexico = 0; return OP_MENOR_IGUAL;}
+">="        {cadenaErrorLexico = 0; return OP_MAYOR_IGUAL;}
+"="         {cadenaErrorLexico = 0; return '=';}
+"=="        {cadenaErrorLexico = 0; return OP_IGUALDAD;}
+"!="        {cadenaErrorLexico = 0; return OP_DESIGUALDAD;}
+"+="        {cadenaErrorLexico = 0; return OP_ASIG_SUMA;}
+"-="        {cadenaErrorLexico = 0; return OP_ASIG_RESTA; }
+"*="        {cadenaErrorLexico = 0; return OP_ASIG_MULTIPLICACION; }
+"/="        {cadenaErrorLexico = 0; return OP_ASIG_DIVISION; }
+"%="        {cadenaErrorLexico = 0; return OP_ASIG_RESTO; }
+"^="        {cadenaErrorLexico = 0; return OP_ASIG_POTENCIA; }             
+"^"         {cadenaErrorLexico = 0; return '^'; }
+"|"         {cadenaErrorLexico = 0; return '|'; }
+"||"        {cadenaErrorLexico = 0; return OP_OR; }
+"&&"        {cadenaErrorLexico = 0; return OP_AND; }
+"?"         {cadenaErrorLexico = 0; return '?'; }
 
     /*Identificador*/
-({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {yylval.strval = strdup(yytext); return IDENTIFICADOR;} 
+({LETRA}|_)({LETRA}|{DIGITO_DECIMAL}|_)* {cadenaErrorLexico = 0; yylval.strval = strdup(yytext); return IDENTIFICADOR;} 
     /*Caracter de Puntuación*/
-";"     {return ';';}
-","     {return ',';}
-"("     {return '(';}
-")"     {return ')';}
-"{"     {return '{';}
-"}"     {return '}';}
-":"     {return ':';}
-"..."   {return OP_PARAMETROS_MULTIPLES;}
+";"     {cadenaErrorLexico = 0; return ';'; }
+","     {cadenaErrorLexico = 0; return ','; }
+"("     {cadenaErrorLexico = 0; return '('; }
+")"     {cadenaErrorLexico = 0; return ')'; }
+"{"     {cadenaErrorLexico = 0; return '{'; }
+"}"     {cadenaErrorLexico = 0; return '}'; }
+":"     {cadenaErrorLexico = 0; return ':'; }
+"..."   {cadenaErrorLexico = 0; return OP_PARAMETROS_MULTIPLES;}
 
     /*Espacio*/
 " "  {}
 
     /*Salto de linea*/
-"\n"    {return '\n';}
+"\n"         {cadenaErrorLexico = 0; return '\n';}
+
+    /*ignorar comentarios*/
+"//"(.*)"\n" {cadenaErrorLexico = 0;}
 
     /*Caracteres no reconocidos*/
-.           {printf("ERROR LEXICO: %s en la linea n: %d\n\n",yytext,yylineno);}
+.           {caracNoReconocidos(yytext,yylineno); }
 
 %%

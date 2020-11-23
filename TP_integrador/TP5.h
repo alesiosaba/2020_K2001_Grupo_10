@@ -53,5 +53,13 @@ symrec *getsym (char const *, int);
 
 void reporteCaracNoReconocidos();
 
+void insertarErrorSintactico();
+
+void reporteErroresSintacticos();
+
+void insertarErrorSemantico();
+
+void reporteErroresSemanticos();
+
 #endif
 

@@ -67,7 +67,8 @@ void reporteCaracNoReconocidos(){
         struct nodoCarNoReconocidos* aux;
         aux = primerCarNoReconocido;
         while(aux != NULL){
-            printf("Cadena: %s\tlinea: %d\n",aux->cadena,aux->linea);
+            if(strcmp(aux->cadena , "") != 0)
+                printf("\tCadena: %s\tlinea: %d\n",aux->cadena,aux->linea);
             aux = aux->sig;
         }
     }

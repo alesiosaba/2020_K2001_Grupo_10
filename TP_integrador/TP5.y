@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "TP5.h"
 #include "TP5.c"
+#include "erroresSintacticosYSemanticos.h"
 #define YYDEBUG 1
 
 extern int yylineno;
@@ -165,19 +166,19 @@ listaDeSentencias:    sentencia
 
 sentenciaDeSeleccion:   TKN_IF '(' expresion ')' sentencia                      {printf("Se detecto una sentencia if\n");}
                       | TKN_IF '(' expresion ')' sentencia TKN_ELSE sentencia   {printf("Se detecto una sentencia if con else\n");}
-                      | TKN_IF error expresion ')' sentencia                    {printf("ERROR SINTACTICO: falta '(' en sentencia IF"); flag_error=1;}
-                      | TKN_IF '(' expresion error sentencia                    {printf("ERROR SINTACTICO: falta ')' en sentencia IF"); flag_error=1;}
-                      | TKN_IF '(' error ')' sentencia                          {printf("ERROR SINTACTICO: expresion incorrecta en sentencia IF"); flag_error=1;}
+                      | TKN_IF error expresion ')' sentencia                    {insertarErrorSintactico("ERROR SINTACTICO: falta '(' en sentencia IF",yylineno); flag_error=1;}
+                      | TKN_IF '(' expresion error sentencia                    {insertarErrorSintactico("ERROR SINTACTICO: falta ')' en sentencia IF",yylineno); flag_error=1;}
+                      | TKN_IF '(' error ')' sentencia                          {insertarErrorSintactico("ERROR SINTACTICO: expresion incorrecta en sentencia IF",yylineno); flag_error=1;}
                       | TKN_SWITCH '(' IDENTIFICADOR ')' sentencia              {printf("Se detecto una sentencia switch\n");}
 ;
 
 sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                                   {printf("Se detecto una sentencia while\n");}   
-                      | TKN_WHILE '(' error ')' sentencia                                       {printf("ERROR SINTACTICO: no tiene expresion en condicion while\n"); flag_error=1; } 
-                      | TKN_WHILE error expresion ')' sentencia                                 {printf("ERROR SINTACTICO: falta '(' en while\n"); flag_error=1;}
-                      | TKN_WHILE '(' expresion error sentencia                                 {printf("ERROR SINTACTICO: falta ') en' while\n"); flag_error=1;}
-                      | TKN_WHILE '(' expresion ')' error                                       {printf("ERROR SINTACTICO: El while no está seguido por una sentencia\n"); flag_error=1;}
+                      | TKN_WHILE '(' error ')' sentencia                                       {insertarErrorSintactico("ERROR SINTACTICO: no tiene expresion en condicion while\n",yylineno); flag_error=1; } 
+                      | TKN_WHILE error expresion ')' sentencia                                 {insertarErrorSintactico("ERROR SINTACTICO: falta '(' en while\n",yylineno); flag_error=1;}
+                      | TKN_WHILE '(' expresion error sentencia                                 {insertarErrorSintactico("ERROR SINTACTICO: falta ') en' while\n",yylineno); flag_error=1;}
+                      | TKN_WHILE '(' expresion ')' error                                       {insertarErrorSintactico("ERROR SINTACTICO: El while no está seguido por una sentencia\n",yylineno); flag_error=1;}
                       | TKN_DO sentencia TKN_WHILE '(' expresion ')' ';'                        {printf("Se detecto una sentencia do while\n");} 
-                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' error                      {printf("ERROR SINTACTICO: No posee ';' luego del while\n"); flag_error=1;}
+                      | TKN_DO sentencia TKN_WHILE '(' expresion ')' error                      {insertarErrorSintactico("ERROR SINTACTICO: No posee ';' luego del while\n",yylineno); flag_error=1;}
                       | TKN_FOR '(' ';' ';' ')' sentencia                                       {printf("Se detecto una sentencia for\n");}    
                       | TKN_FOR '(' expresion ';' ';' ')' sentencia                             {printf("Se detecto una sentencia for\n");}  
                       | TKN_FOR '('  ';' expresion ';' ')' sentencia                            {printf("Se detecto una sentencia for\n");} 
@@ -186,9 +187,9 @@ sentenciaDeIteracion:   TKN_WHILE '(' expresion ')' sentencia                   
                       | TKN_FOR '(' expresion ';'  ';' expresion ')' sentencia                  {printf("Se detecto una sentencia for\n");}  
                       | TKN_FOR '('  ';' expresion ';' expresion ')' sentencia                  {printf("Se detecto una sentencia for\n");}  
                       | TKN_FOR '(' expresion ';' expresion ';' expresion ')' sentencia         {printf("Se detecto una sentencia for\n");}
-                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' error             {printf("ERROR SINTACTICO: El FOR no esta seguido por una sentencia\n");flag_error=1;}
-                      | TKN_FOR error expresion ';' expresion ';' expresion ')' sentencia       {printf("ERROR SINTACTICO: El FOR no tiene '(' de apertura\n"); flag_error=1;}
-                      | TKN_FOR '(' expresion ';' expresion ';' expresion error sentencia       {printf("ERROR SINTACTICO: El FOR no tiene ')' de cierre\n");   flag_error=1;}
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion ')' error             {insertarErrorSintactico("ERROR SINTACTICO: El FOR no esta seguido por una sentencia\n",yylineno); flag_error=1;}
+                      | TKN_FOR error expresion ';' expresion ';' expresion ')' sentencia       {insertarErrorSintactico("ERROR SINTACTICO: El FOR no tiene '(' de apertura\n", yylineno); flag_error=1;}
+                      | TKN_FOR '(' expresion ';' expresion ';' expresion error sentencia       {insertarErrorSintactico("ERROR SINTACTICO: El FOR no tiene ')' de cierre\n", yylineno); flag_error=1;}
 ;
 
 sentenciaEtiquetada:    TKN_CASE constante ':' sentencia            {printf("Se detecto una sentencia case de switch\n");}   
@@ -213,9 +214,9 @@ struct:    TKN_STRUCT IDENTIFICADOR '{' camposStruct '}' ';'                  {p
 
 camposStruct:     TIPO_DE_DATO IDENTIFICADOR ';' camposStruct   {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
                 | TIPO_DE_DATO IDENTIFICADOR ';'                {printf("Se agrega el campo %s de tipo %s al struct \n",$<strval>2,$<strval>1);}
-                | error ';'                                     {if(!flag_error){printf("\t ERROR: error en campo de struct \n"); flag_error = 1;}}
-                | TIPO_DE_DATO IDENTIFICADOR                    {if(!flag_error){printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}}
-                | TIPO_DE_DATO                                  {if(!flag_error){printf("\t ERROR: error sin punto y coma en campo de struct \n"); flag_error = 1;}}
+                | error ';'                                     {if(!flag_error){insertarErrorSintactico("\t ERROR SINTACTICO error en campo de struct \n",yylineno); flag_error = 1;}}
+                | TIPO_DE_DATO IDENTIFICADOR                    {if(!flag_error){insertarErrorSintactico("\t ERROR SINTACTICO: error sin punto y coma en campo de struct \n",yylineno); flag_error = 1;}}
+                | TIPO_DE_DATO                                  {if(!flag_error){insertarErrorSintactico("\t ERROR SINTACTICO: error sin punto y coma en campo de struct \n",yylineno); flag_error = 1;}}
 ;
 
 dec:      declaracionDefinicionFuncion          
@@ -229,24 +230,24 @@ listaIdentificadores:   declaIdentificador                          {printf("Der
                       | declaIdentificador ',' listaIdentificadores {printf("Se agrega una variable a la declaracion\n");}
 ;
 
-declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariableSinInicializar($<strval>1,tipoDeclaracion);} 
-                    | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariable($<strval>1,tipoDeclaracion,valorConstante);}
-                    | IDENTIFICADOR '=' LITERAL_CADENA  {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else {printf("Se derivo el literal cadena: %s\n", $<strval>3); sprintf(valorConstante,"%s",$<strval>3); tipoConstante = "char*";  declararVariable($<strval>1,tipoDeclaracion,valorConstante);} }
-                    | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1,TYP_VAR); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n"); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
-                    | error                             {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar\n"); flag_error = 1;} }
-                    | error '=' constante               {if(!flag_error){printf("\t ERROR: identificador erroneo de variable a declarar con inicializacion\n"); flag_error = 1;} }
-                    | IDENTIFICADOR '=' error           {if(!flag_error){printf("\t ERROR: inicializacion con valor erroneo en declaracion de variable\n"); flag_error = 1;} }
+declaIdentificador:   IDENTIFICADOR                     {aux=getsym($<strval>1,TYP_VAR); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n",yylineno); else declararVariableSinInicializar($<strval>1,tipoDeclaracion);} 
+                    | IDENTIFICADOR '=' constante       {aux=getsym($<strval>1,TYP_VAR); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n",yylineno); else declararVariable($<strval>1,tipoDeclaracion,valorConstante);}
+                    | IDENTIFICADOR '=' LITERAL_CADENA  {aux=getsym($<strval>1,TYP_VAR); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n",yylineno); else {printf("Se derivo el literal cadena: %s\n", $<strval>3); sprintf(valorConstante,"%s",$<strval>3); tipoConstante = "char*";  declararVariable($<strval>1,tipoDeclaracion,valorConstante);} }
+                    | IDENTIFICADOR '=' IDENTIFICADOR   {aux=getsym($<strval>1,TYP_VAR); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE VARIABLES\n",yylineno); else declararVariableIgualando($<strval>1,tipoDeclaracion,$<strval>3); }
+                    | error                             {if(!flag_error){insertarErrorSintactico("\t ERROR sintactico: identificador erroneo de variable a declarar\n",yylineno); flag_error = 1;} }
+                    | error '=' constante               {if(!flag_error){insertarErrorSintactico("\t ERROR sintactico: identificador erroneo de variable a declarar con inicializacion\n",yylineno); flag_error = 1;} }
+                    | IDENTIFICADOR '=' error           {if(!flag_error){insertarErrorSintactico("\t ERROR sintactico: inicializacion con valor erroneo en declaracion de variable\n",yylineno); flag_error = 1;} }
 ;
 
 declaracionDefinicionFuncion:     IDENTIFICADOR {identificador = $<strval>1; listaAuxParametros = NULL;} parametrosCuerpoFuncion  
-                                | error parametrosCuerpoFuncion {printf("\t ERROR: falta identificador en declaracion/definicion de funcion\n"); flag_error = 1;}
+                                | error parametrosCuerpoFuncion {insertarErrorSintactico("\t ERROR sintactico: falta identificador en declaracion/definicion de funcion\n",yylineno); flag_error = 1;}
 ;
 
-parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
-                            | '(' listaParametroSinId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
-                            | '(' /* vacio */ ')' sentenciaCompuesta            {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
-                            | '(' /* vacio */ ')' ';'                           {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
-                            | '(' listaParametroConId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) printf("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n"); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+parametrosCuerpoFuncion:      '(' listaParametroConId ')' sentenciaCompuesta    {aux=getsym($<strval>1,TYP_FNCT); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n",yylineno); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' listaParametroSinId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n",yylineno); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' /* vacio */ ')' sentenciaCompuesta            {aux=getsym($<strval>1,TYP_FNCT); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n",yylineno); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' /* vacio */ ')' ';'                           {aux=getsym($<strval>1,TYP_FNCT); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n",yylineno); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
+                            | '(' listaParametroConId ')' ';'                   {aux=getsym($<strval>1,TYP_FNCT); if (aux) insertarErrorSemantico("\n\tERROR semantico: DOBLE DECLARACION DE FUNCION\n",yylineno); else declaracionDeFuncion(identificador, tipoDeclaracion, listaAuxParametros); }
 ;
 
 listaParametroConId:      parametroConId
@@ -259,26 +260,26 @@ listaParametroSinId:      parametroSinId
 
 parametroConId:   TIPO_DE_DATO IDENTIFICADOR       { agregarParametroAuxiliar($<strval>1);} 
                 | TIPO_DE_DATO '*' IDENTIFICADOR   { agregarParametroAuxiliar(strcat($<strval>1,"*"));} 
-                | error IDENTIFICADOR              {printf("\t ERROR: falta tipo de dato en parametroConId \n"); flag_error = 1;}
-                | error '*' IDENTIFICADOR          {printf("\t ERROR: falta tipo de dato puntero en parametroConId \n"); flag_error = 1;}
-                | TIPO_DE_DATO error               {printf("\t ERROR: falta identificador en parametroConId \n"); flag_error = 1;}
-                | TIPO_DE_DATO '*' error           {printf("\t ERROR: falta identificador del puntero en parametroConId \n"); flag_error = 1;}
+                | error IDENTIFICADOR              {insertarErrorSintactico("\t ERROR sintactico: falta tipo de dato en parametroConId \n",yylineno); flag_error = 1;}
+                | error '*' IDENTIFICADOR          {insertarErrorSintactico("\t ERROR sintactico: falta tipo de dato puntero en parametroConId \n",yylineno); flag_error = 1;}
+                | TIPO_DE_DATO error               {insertarErrorSintactico("\t ERROR sintactico: falta identificador en parametroConId \n", yylineno); flag_error = 1;}
+                | TIPO_DE_DATO '*' error           {insertarErrorSintactico("\t ERROR sintactico: falta identificador del puntero en parametroConId \n", yylineno); flag_error = 1;}
 ;
 
 parametroSinId:   TIPO_DE_DATO         { agregarParametroAuxiliar($<strval>1);} 
                 | TIPO_DE_DATO '*'     { agregarParametroAuxiliar(strcat($<strval>1,"*"));} 
-                | error                {printf("\t ERROR: falta tipo de dato en parametroSinId \n"); flag_error = 1;}
-                | error '*'            {printf("\t ERROR: falta tipo de dato del puntero en parametroSinId \n"); flag_error = 1;}
+                | error                {insertarErrorSintactico("\t ERROR sintactico: falta tipo de dato en parametroSinId \n",yylineno); flag_error = 1;}
+                | error '*'            {insertarErrorSintactico("\t ERROR sintactico: falta tipo de dato del puntero en parametroSinId \n",yylineno); flag_error = 1;}
 ;
 
 ////////////////////////////////////////////////// GRAMATICA DE EXPRESIONES ///////////////////////////////////////////////////////////
 
-expresion:      expAsignacion {$<tipoExpresion>$=$<tipoExpresion>1;}
+expresion:      expAsignacion {printf("ENTRO A EXPRESION\n"); $<tipoExpresion>$=$<tipoExpresion>1;}
 ;
 
 expAsignacion:    expCondicional                           {$<tipoExpresion>$=$<tipoExpresion>1;}
                 | invocacionDeFuncion                      {printf("Se derivo por invocacionDeFuncion\n");}
-                | expUnaria operAsignacion expAsignacion   {verificacionDeTiposCorrecta($<tipoExpresion>1,$<tipoExpresion>3);} 
+                | expUnaria operAsignacion expAsignacion   {verificacionDeTiposCorrecta($<tipoExpresion>1,$<tipoExpresion>3,yylineno);} 
 ;
 
 operAsignacion:   '='                       {printf("Se utiliza el =\n");}
@@ -288,7 +289,7 @@ operAsignacion:   '='                       {printf("Se utiliza el =\n");}
                 | OP_ASIG_SUMA              {printf("Se utiliza el =+\n");}                        
                 | OP_ASIG_RESTA             {printf("Se utiliza el =-\n");}
                 | OP_ASIG_POTENCIA          {printf("Se utiliza el =^\n");}
-                | error                     {printf("\t ERROR SINTACTICO: operador de asignacion incorrecto\n"); flag_error = 1;}
+                | error                     {insertarErrorSintactico("\t ERROR sintactico: operador de asignacion incorrecto\n",yylineno); flag_error = 1;}
 ;
 
 expCondicional: expOr   {$<tipoExpresion>$=$<tipoExpresion>1; }
@@ -315,7 +316,7 @@ operadorRelacional:   OP_MAYOR_IGUAL    {printf("Se derivo el operador >=\n");}
                     | '>'               {printf("Se derivo el operador >\n");}    
                     | OP_MENOR_IGUAL    {printf("Se derivo el operador <=\n");} 
                     | '<'               {printf("Se derivo el operador <\n");}
-                    | error             {printf("\t ERROR: operador relacional incorrecto\n"); flag_error = 1;}
+                    | error             {insertarErrorSintactico("\t ERROR sintactico: operador relacional incorrecto\n",yylineno); flag_error = 1;}
 ;  
 
 expAditiva: expMultiplicativa                   {$<tipoExpresion>$=$<tipoExpresion>1; }
@@ -342,20 +343,17 @@ operUnario:   '&'       {printf("Se derivo por operUnario con &\n");}
             | '*'       {printf("Se derivo por operUnario con *\n");}
 ;
 
-expPostfijo:   expPrimaria                          {$<tipoExpresion>$=$<tipoExpresion>1; } 
+expPostfijo:   expPrimaria                          {printf("ENTRO A EXPRESION post fijo\n"); $<tipoExpresion>$=$<tipoExpresion>1; } 
              | expPostfijo '[' expresion ']'        {printf("Se agrega [ expresion ] a expPostfijo\n");}
-             | expPostfijo error expresion ']'      {printf("ERROR SINTACTICO: Falta '[' en expPostfijo.\n"); flag_error=1;}
-             | expPostfijo '[' expresion error      {printf("ERROR SINTACTICO: Falta ']' en expPostfijo.\n"); flag_error=1;}
-             | expPostfijo '[' error ']'            {printf("ERROR SINTACTICO: Expresion no valida dentro de expPostfijo.\n"); flag_error=1;}
+             | expPostfijo error expresion ']'      {insertarErrorSintactico("ERROR sintactico: Falta '[' en expPostfijo.\n",yylineno); flag_error=1;}
+             | expPostfijo '[' expresion error      {insertarErrorSintactico("ERROR sintactico: Falta ']' en expPostfijo.\n",yylineno); flag_error=1;}
+             | expPostfijo '[' error ']'            {insertarErrorSintactico("ERROR sintactico: Expresion no valida dentro de expPostfijo.\n",yylineno); flag_error=1;}
 ;
 
-expPrimaria:   IDENTIFICADOR            {aux=getsym($<strval>1,TYP_VAR); if (aux) $<tipoExpresion>$ = aux->tipo; else printf("\n\tERROR SEMANTICO: No existe la variable %s\n",$<strval>1);}
+expPrimaria:   IDENTIFICADOR            {printf("ENTRO A EXPRESION primaria\n"); aux=getsym($<strval>1,TYP_VAR); if(aux) $<tipoExpresion>$ = aux->tipo; else {printf("ENTRO AL ELSE, ALE NO EXISTE\n"); insertarErrorSemantico("\n\tERROR SEMANTICO: No existe la variable utilizada",yylineno);}}
              | constante                {printf("\nSe derivo una constante de tipo: %s\n",$<tipoExpresion>1); $<tipoExpresion>$=$<tipoExpresion>1; } 
              | LITERAL_CADENA           {$<tipoExpresion>$="char*"; printf("Se derivo el literal cadena: %s\n", $<strval>1);    sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char*";} 
              | '(' expresion ')'        {$<tipoExpresion>$=$<tipoExpresion>2;} 
-             | error expresion ')'      {printf("ERROR SINTACTICO: Falta '(' en expPostfijo.\n"); flag_error=1;} 
-             | '(' error ')'            {printf("ERROR SINTACTICO: Expresion no valida en expPrimaria.\n"); flag_error=1;} 
-             | '(' expresion error      {printf("ERROR SINTACTICO: Falta ')' en expPostfijo.\n"); flag_error=1;} 
 ;
 
 constante:    ENTERO               {$<tipoExpresion>$="int";       printf("Se derivo la constante entera: %d\n",$<ival>1);     sprintf(valorConstante,"%d",$<ival>1);   tipoConstante = "int";}   
@@ -363,18 +361,18 @@ constante:    ENTERO               {$<tipoExpresion>$="int";       printf("Se de
             | CONST_CARACTER       {$<tipoExpresion>$="char";      printf("Se derivo la constante caracter: %s\n",$<strval>1); sprintf(valorConstante,"%s",$<strval>1); tipoConstante = "char";} 
 ;
 
-invocacionDeFuncion:    IDENTIFICADOR '(' listaArgumentos ')'   {if(invocacion($<strval>1)){aux=getsym($<strval>1,TYP_FNCT); $<tipoExpresion>$=aux->tipo;};}
-                     |  IDENTIFICADOR error listaArgumentos ')' {printf("ERROR SEMANTICO: Falta '(' en invocacionDeFuncion"); flag_error=1;}
-                     |  IDENTIFICADOR '(' listaArgumentos error {printf("ERROR SEMANTICO: Falta ')' en invocacionDeFuncion"); flag_error=1;}
-                     |  IDENTIFICADOR '(' error ')'             {printf("ERROR SEMANTICO: lista de argumentos no valida"); flag_error=1;}
+invocacionDeFuncion:    IDENTIFICADOR '(' listaArgumentos ')'   {if(invocacion($<strval>1,yylineno)){aux=getsym($<strval>1,TYP_FNCT); $<tipoExpresion>$=aux->tipo;};}
+                     |  IDENTIFICADOR error listaArgumentos ')' {insertarErrorSintactico("ERROR sintactico falta '(' en invocacionDeFuncion", yylineno); flag_error=1;}
+                     |  IDENTIFICADOR '(' listaArgumentos error {insertarErrorSintactico("ERROR sintactico falta ')' en invocacionDeFuncion", yylineno); flag_error=1;}
+                     |  IDENTIFICADOR '(' error ')'             {insertarErrorSintactico("ERROR sintactico: lista de argumentos no valida", yylineno); flag_error=1;}
 ;
 
 listaArgumentos:   argumento                          {printf("Se derivo por argumento en la lista de argumentos\n");} 
                  | argumento ',' listaArgumentos      {printf("Se agrega argumento a la lista de argumentos\n");}
 ;
 
-argumento:        /* vacio */         {printf("Se derivo por invocacion sin arg");}
-                | IDENTIFICADOR       {chequeoArgumento($<strval>1);}
+argumento:        /* vacio */         {printf("Se derivo por invocacion sin arg\n");}
+                | IDENTIFICADOR       {chequeoArgumento($<strval>1,yylineno);}
                 | constante           {agregarArgumentoAuxiliar(tipoConstante);}
                 | LITERAL_CADENA      {agregarArgumentoAuxiliar("char*");}
 %%

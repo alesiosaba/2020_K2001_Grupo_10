@@ -206,10 +206,13 @@ int invocacionCorrecta(struct symrec *funcionInvocada){
   
 }
 
-void chequeoArgumento(char* id){
+void chequeoArgumento(char* id, int linea){
     symrec* auxArg=getsym(id,TYP_VAR); 
+    char* mensajeError;
+
     if(auxArg == 0){
-        printf("\n\tERROR semantico: NO EXISTE LA VARIABLE %s DEL PARAMETRO \n",id);
+        mensajeError = strcat("\n\tERROR semantico: NO EXISTE LA VARIABLE %s DEL PARAMETRO \n",id);
+        insertarErrorSemantico(mensajeError,linea);
         errorEnArgumento = 1;
     }
     else
@@ -217,18 +220,23 @@ void chequeoArgumento(char* id){
 }
 
 
-int invocacion(char* id){
+int invocacion(char* id, int linea){
 
     int estadoChequeo = 1;
+    char mensajeError[100];
 
     if(!errorEnArgumento) {
         aux=getsym(id,TYP_FNCT); 
         if (aux == 0){
-            printf("\tERROR semantico: NO EXISTE LA FUNCION %s \n\n",id);
+            strcpy(mensajeError,"ERROR semantico: NO EXISTE LA FUNCION ");
+            strcat(mensajeError,id);
+            insertarErrorSemantico(mensajeError,linea);
             estadoChequeo = 0;
         }
         else if(aux && !invocacionCorrecta(aux)){
-            printf("\tERROR semantico: ERROR DE INVOCACION DE FUNCION %s \n\n",id);
+            strcpy(mensajeError,"ERROR semantico: ERROR DE INVOCACION DE FUNCION "); 
+            strcat(mensajeError,id);
+            insertarErrorSemantico(mensajeError,linea);
             estadoChequeo = 0;
         }
         else
@@ -244,19 +252,12 @@ int invocacion(char* id){
 
 // verificacion de tipos en una operacion binaria de asignacion
 
-void verificacionDeTiposCorrecta(char* tipo1,char* tipo2){
+void verificacionDeTiposCorrecta(char* tipo1,char* tipo2, int linea){
     if(strcmp(tipo1,tipo2)==0) 
         printf("Se puede realizar la Operacion Binaria porque son del MISMO tipo.\n");
     else
-        printf("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n");
+        insertarErrorSemantico("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n",linea);
 }
-
-// agregar error sintactico 
-
-
-
-// agregar error semantico 
-
 
 void mostrarListaVar(){
     symrec * auxTabla = sym_table;
@@ -302,11 +303,13 @@ void generarReporte(){
     printf("A continuacion hacemos el reporte: \n");
     system("PAUSE");
     system("CLS");
-    printf("\n\n\t******************REPORTE DE COMPILACION******************\n\n");
+    printf("\n\n\t*************************  REPORTE DE COMPILACION  *************\n\n");
     
     mostrarListaVar();
     mostrarListaFunc();
     reporteCaracNoReconocidos();
+    reporteErroresSintacticos();
+    reporteErroresSemanticos();
 }
 
 

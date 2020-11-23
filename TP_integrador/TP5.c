@@ -65,8 +65,10 @@ int sonDelMismoTipo(char* tipo, char* tipo2){
 
 // Se utiliza cuando declaramos una variable inicializando su valor con el de otra variable
 
-void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
+void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2, int linea){
     aux2 = getsym(nombre2,TYP_VAR);
+
+    char* mensajeError;
  
     if(aux2 && sonDelMismoTipo(tipo, aux2->tipo)){
         // asignacion
@@ -77,10 +79,14 @@ void declararVariableIgualando(char * nombre1,char* tipo,char * nombre2){
     }
     else if(aux2 && !sonDelMismoTipo(tipo, aux2->tipo))
     {
-        printf("\n\tERROR EN CONTROL DE TIPOS DE DATOS EN LA ASIGNACION.\n\n");
+        strcat(mensajeError, "ERROR SEMANTICO: EN CONTROL DE TIPOS DE DATOS EN LA ASIGNACION");
+        insertarErrorSemantico(mensajeError,linea);
     }
     else{
-        printf("\n\tERROR: NO EXISTE LA VARIABLE %s DE LA ASIGNACION.\n\n", nombre2);
+        strcat(mensajeError,"ERROR SEMANTICO: NO EXISTE LA VARIABLE ");
+        strcat(mensajeError,nombre2);
+        strcat(mensajeError, " DE LA ASIGNACION");
+        insertarErrorSemantico(mensajeError,linea);
     }
     
 };
@@ -188,7 +194,7 @@ int invocacionCorrecta(struct symrec *funcionInvocada){
   while(auxArgumentos != NULL && auxParametros != NULL)
   {
     if(strcmp(auxArgumentos->tipo,auxParametros->tipo)!=0){
-      printf("\nNo coinciden los tipos de argumentos de en la invocacion\n");
+      printf("\nNo coinciden los tipos de argumentos en la invocacion\n");
       return 0;
     }
     auxArgumentos = auxArgumentos->next;
@@ -211,7 +217,7 @@ void chequeoArgumento(char* id, int linea){
     char* mensajeError;
 
     if(auxArg == 0){
-        mensajeError = strcat("\n\tERROR semantico: NO EXISTE LA VARIABLE %s DEL PARAMETRO \n",id);
+        mensajeError = strcat("ERROR SEMANTICO: NO EXISTE LA VARIABLE %s DEL PARAMETRO",id);
         insertarErrorSemantico(mensajeError,linea);
         errorEnArgumento = 1;
     }
@@ -228,13 +234,13 @@ int invocacion(char* id, int linea){
     if(!errorEnArgumento) {
         aux=getsym(id,TYP_FNCT); 
         if (aux == 0){
-            strcpy(mensajeError,"ERROR semantico: NO EXISTE LA FUNCION ");
+            strcpy(mensajeError,"ERROR SEMANTICO: NO EXISTE LA FUNCION ");
             strcat(mensajeError,id);
             insertarErrorSemantico(mensajeError,linea);
             estadoChequeo = 0;
         }
         else if(aux && !invocacionCorrecta(aux)){
-            strcpy(mensajeError,"ERROR semantico: ERROR DE INVOCACION DE FUNCION "); 
+            strcpy(mensajeError,"ERROR SEMANTICO: ERROR DE INVOCACION DE FUNCION "); 
             strcat(mensajeError,id);
             insertarErrorSemantico(mensajeError,linea);
             estadoChequeo = 0;
@@ -256,7 +262,7 @@ void verificacionDeTiposCorrecta(char* tipo1,char* tipo2, int linea){
     if(strcmp(tipo1,tipo2)==0) 
         printf("Se puede realizar la Operacion Binaria porque son del MISMO tipo.\n");
     else
-        insertarErrorSemantico("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.\n",linea);
+        insertarErrorSemantico("ERROR SEMANTICO: NO se puede realizar la Operacion Binaria porque NO son del mismo tipo.",linea);
 }
 
 void mostrarListaVar(){
@@ -303,7 +309,7 @@ void generarReporte(){
     printf("A continuacion hacemos el reporte: \n");
     system("PAUSE");
     system("CLS");
-    printf("\n\n\t*************************  REPORTE DE COMPILACION  *************\n\n");
+    printf("\n\n\t********************  REPORTE DE COMPILACION  ********************\n");
     
     mostrarListaVar();
     mostrarListaFunc();

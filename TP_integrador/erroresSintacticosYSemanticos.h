@@ -33,7 +33,7 @@ void insertarErrorSintactico(char* mensaje,int linea){
     }
 }
 
-void reporteErroresSintacticos(){
+void reporteErroresSintacticos(){ 
     
     printf("\n\t----------------------Errores Sintacticos----------------------\n\n");
     if(primerErrorSintactico == NULL)
@@ -42,7 +42,7 @@ void reporteErroresSintacticos(){
         struct nodoError* aux;
         aux = primerErrorSintactico;
         while(aux != NULL){
-            printf("\t%s\tlinea: %d\n",aux->mensaje,aux->linea);
+            printf("\t%s\n\tLinea: %d\n\n",aux->mensaje,aux->linea);
             aux = aux->sig;
         }
     }
@@ -81,7 +81,7 @@ void reporteErroresSemanticos(){
         struct nodoError* aux;
         aux = primerErrorSemantico;
         while(aux != NULL){
-            printf("\t%s\ten la linea: %d\n",aux->mensaje,aux->linea);
+            printf("\t%s\n\tLinea: %d\n\n",aux->mensaje,aux->linea);
             aux = aux->sig;
         }
     }

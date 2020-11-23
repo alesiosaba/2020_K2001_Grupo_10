@@ -124,9 +124,9 @@ OPERADOR (\[|\]|\.|->|sizeof|\+\+|--|~|!|-|\+|&|\*|\/|%|<<|>>|<|<=|>|>=|=|==|!=|
 "\n"         {cadenaErrorLexico = 0; return '\n';}
 
     /*ignorar comentarios*/
-"//"(.*)"\n" {cadenaErrorLexico = 0;}
+"//"(.*)/"\n"        {cadenaErrorLexico = 0;}
 
     /*Caracteres no reconocidos*/
-.           {caracNoReconocidos(yytext,yylineno); }
+.           {printf("ENTRE CON %s\n",yytext); caracNoReconocidos(yytext,yylineno); }
 
 %%
